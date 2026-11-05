@@ -28,6 +28,7 @@ public final class Sorter {
     public static final String AUTOFILL = "autofill";
     public static final String DELETE = "delete";
     public static final String QUICK_MOVE = "quickmove";
+    public static final String MANUAL = "manual";
 
     /** Player main inventory is slots 9 to 35 of the player's Inventory. */
     private static final int MAIN_START = 9;
@@ -67,6 +68,11 @@ public final class Sorter {
 
     public static void sortGroup(ServerPlayer player, int containerId, String group, String methodName, String keyName,
                                  String lockedIds) {
+        // Not a sort: the client reports a hotbar slot the player clicked, so autofill does not put it back.
+        if (MANUAL.equals(group)) {
+            Autofill.markManual(player.getUUID(), parseLocked(lockedIds));
+            return;
+        }
         // Not a sort: a quick move of one slot, with the mode in the method field ("one", "type" or "stack").
         if (QUICK_MOVE.equals(group)) {
             // For a quick move, lockedIds is the one slot, and keyName carries that side's locked slots.
@@ -160,6 +166,9 @@ public final class Sorter {
         var locked = parseLocked(lockedList);
         if (locked.contains(index)) {
             return;
+        }
+        if (source.container == player.getInventory() && source.getContainerSlot() <= 8) {
+            Autofill.markManual(player.getUUID(), java.util.Set.of(source.getContainerSlot()));
         }
         switch (mode) {
             case "one" -> moveOne(player, menu, source, locked);

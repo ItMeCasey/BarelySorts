@@ -1,6 +1,7 @@
 package com.itmecasey.barelysorts.client;
 
 import com.itmecasey.barelysorts.Platform;
+import com.itmecasey.barelysorts.Platform;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -26,8 +27,17 @@ public final class KeyBindings {
     private KeyBindings() {
     }
 
+    /** Sorts the group when clicked. Default middle mouse button. Can be rebound to another mouse button. */
+    public static final KeyMapping SORT_CLICK =
+            new KeyMapping("key.barelysorts.sort_click", InputConstants.Type.MOUSE, GLFW.GLFW_MOUSE_BUTTON_MIDDLE, CATEGORY);
+
     public static List<KeyMapping> all() {
-        return List.of(SORT, MARK);
+        return List.of(SORT, MARK, SORT_CLICK);
+    }
+
+    /** Whether a mouse button press is the sort-click button. */
+    public static boolean isSortClick(int button) {
+        return Platform.keyCode(SORT_CLICK) == button;
     }
 
     /** Whether the mapping's key is held right now. Works on container screens, where the game does not track it. */

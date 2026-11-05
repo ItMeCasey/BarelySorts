@@ -13,3 +13,4 @@ nf*.log
 release/
 dist/
 scratch-*.log
+test-mods.gradle

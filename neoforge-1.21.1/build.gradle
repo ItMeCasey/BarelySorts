@@ -62,3 +62,4 @@ var generateModMetadata = tasks.register('generateModMetadata', ProcessResources
     into 'build/generated/sources/modMetadata'
 }
 sourceSets.main.resources.srcDir generateModMetadata
+if (file("test-mods.gradle").exists()) { apply from: "test-mods.gradle" }

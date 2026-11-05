@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,6 +53,13 @@ public final class Autofill {
 
     private static final Map<UUID, ItemStack[]> SNAPSHOTS = new HashMap<>();
     private static final Map<UUID, Saved> SETTINGS = new HashMap<>();
+    /** Hotbar slots the player moved or removed by hand since the last tick. Those are never refilled. */
+    private static final Map<UUID, Set<Integer>> MANUAL = new HashMap<>();
+
+    /** Records hotbar slots the player just moved or removed by hand, so autofill leaves them empty. */
+    public static void markManual(UUID player, Set<Integer> hotbarSlots) {
+        MANUAL.computeIfAbsent(player, id -> new HashSet<>()).addAll(hotbarSlots);
+    }
 
     private Autofill() {
     }
@@ -71,6 +79,7 @@ public final class Autofill {
         Saved settings = settingsFor(player);
         boolean atOne = settings.replaceAtOne();
         Set<Integer> locked = Set.copyOf(settings.locked());
+        Set<Integer> manual = MANUAL.getOrDefault(player.getUUID(), Set.of());
 
         for (int slot = 0; slot < HOTBAR_SIZE; slot++) {
             if (locked.contains(slot)) {
@@ -79,17 +88,22 @@ public final class Autofill {
             ItemStack before = previous[slot];
             ItemStack now = inventory.getItem(slot);
             if (!before.isEmpty() && now.isEmpty()) {
-                refill(inventory, slot, before, locked);
+                // Emptied by hand (a shift-click, a drag or a delete), not by use: leave it empty.
+                if (!manual.contains(slot)) {
+                    refill(inventory, slot, before, locked);
+                }
             } else if (atOne && isOnLastUse(now)) {
                 swapDamaged(inventory, slot, now, locked);
             }
         }
+        MANUAL.remove(player.getUUID());
         SNAPSHOTS.put(player.getUUID(), copyHotbar(inventory));
     }
 
     public static void forget(UUID player) {
         SNAPSHOTS.remove(player);
         SETTINGS.remove(player);
+        MANUAL.remove(player);
     }
 
     /** The player's settings in memory, or read from the world file the first time. */

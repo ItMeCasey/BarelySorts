@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
  */
 public final class ScreenActions {
     private static final int LEFT_BUTTON = 0;
-    private static final int MIDDLE_BUTTON = 2;
 
     /** Our own pixel font (common/src/main/resources/assets/barelysorts/font), used for popup and hint text. */
     private static final ResourceLocation SMALL_FONT =
@@ -129,6 +128,7 @@ public final class ScreenActions {
 
     /** Returns true when the click was used, so the loader can cancel it. */
     public static boolean mouseButton(AbstractContainerScreen<?> screen, double mouseX, double mouseY, int button) {
+        noteHotbarClick(screen, mouseX, mouseY);
         if (confirmScreen == screen) {
             if (button == LEFT_BUTTON) {
                 int left = confirmLeft(screen);
@@ -205,7 +205,7 @@ public final class ScreenActions {
                 sort(screen, group);
                 return true;
             }
-            if (button == MIDDLE_BUTTON && group.contains(mouseX, mouseY)) {
+            if (KeyBindings.isSortClick(button) && group.contains(mouseX, mouseY)) {
                 closePopup();
                 sort(screen, group);
                 return true;
@@ -311,7 +311,10 @@ public final class ScreenActions {
      * Holding Shift and moving over items quick-moves each one, once per hold. Releasing Shift starts over.
      */
     private static void updateShiftDrag(AbstractContainerScreen<?> screen, double mouseX, double mouseY) {
-        if (!KeyBindings.shiftDown()) {
+        // Shift-drag needs the left mouse button held as well, so moving the mouse with Shift alone does nothing.
+        boolean leftHeld = GLFW.glfwGetMouseButton(Minecraft.getInstance().getWindow().getWindow(),
+                GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS;
+        if (!KeyBindings.shiftDown() || !leftHeld) {
             dragged.clear();
             dragScreen = null;
             return;
@@ -500,6 +503,20 @@ public final class ScreenActions {
 
     private static boolean isSelecting(AbstractContainerScreen<?> screen, Group group) {
         return selectScreen == screen && group.settingsKey().equals(selectKey);
+    }
+
+    /**
+     * Tells the server when the player clicks a hotbar slot, so autofill does not refill the slot they just emptied.
+     * The click itself is not consumed.
+     */
+    private static void noteHotbarClick(AbstractContainerScreen<?> screen, double mouseX, double mouseY) {
+        Slot slot = slotUnder(screen, mouseX, mouseY);
+        var inventory = Minecraft.getInstance().player.getInventory();
+        if (slot != null && slot.container == inventory && slot.getContainerSlot() >= 0
+                && slot.getContainerSlot() <= 8) {
+            Platform.sendSort(screen.getMenu().containerId, Sorter.MANUAL, "", "",
+                    String.valueOf(slot.getContainerSlot()));
+        }
     }
 
     /**
