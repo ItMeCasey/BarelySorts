@@ -38,13 +38,23 @@ public final class Sorter {
     }
 
     /**
+     * Vanilla workstations: crafting grids, furnaces, the anvil and the rest. They get no buttons and are never sorted.
+     * Matched by class name so the same list works on every version.
+     */
+    private static final java.util.Set<String> WORKSTATIONS = java.util.Set.of(
+            "CraftingMenu", "AbstractFurnaceMenu", "AnvilMenu", "StonecutterMenu", "GrindstoneMenu",
+            "EnchantmentMenu", "BrewingStandMenu", "LoomMenu", "CartographyTableMenu", "SmithingMenu",
+            "MerchantMenu", "BeaconMenu");
+
+    /**
      * Whether a menu may be sorted or emptied. The creative item picker is client-only, and Applied Energistics 2
      * terminals show a virtual network grid, so neither is touched. Anything else, including other mods' storage, is.
      */
     public static boolean isSupported(AbstractContainerMenu menu) {
         for (Class<?> type = menu.getClass(); type != null; type = type.getSuperclass()) {
             String name = type.getName();
-            if (name.startsWith("appeng.") || name.endsWith("ItemPickerMenu")) {
+            if (name.startsWith("appeng.") || name.endsWith("ItemPickerMenu")
+                    || WORKSTATIONS.contains(type.getSimpleName())) {
                 return false;
             }
         }
