@@ -8,7 +8,6 @@ import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenKeyboardEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenMouseEvents;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import org.lwjgl.glfw.GLFW;
 
 /** Client side of the Fabric layer: the buttons and the middle-click and R sorting on container screens. */
 public final class FabricClient implements ClientModInitializer {
@@ -38,7 +37,7 @@ public final class FabricClient implements ClientModInitializer {
             ScreenMouseEvents.allowMouseClick(screen).register((s, mouseX, mouseY, button) ->
                     !ScreenActions.mouseButton(container, mouseX, mouseY, button));
             ScreenKeyboardEvents.allowKeyPress(screen).register((s, key, scancode, modifiers) ->
-                    key != GLFW.GLFW_KEY_R || !ScreenActions.keyR(container));
+                    !ScreenActions.key(container, key));
         });
     }
 }

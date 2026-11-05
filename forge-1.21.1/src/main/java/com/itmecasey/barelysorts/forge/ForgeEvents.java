@@ -11,7 +11,6 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import org.lwjgl.glfw.GLFW;
 
 /** Server-side hooks: autofill runs each player tick, and its state is dropped on logout. */
 @Mod.EventBusSubscriber(modid = BarelySorts.MODID)
@@ -55,8 +54,7 @@ public final class ForgeEvents {
         @SubscribeEvent
         public static void onKey(ScreenEvent.KeyPressed.Pre event) {
             if (event.getScreen() instanceof AbstractContainerScreen<?> screen
-                    && event.getKeyCode() == GLFW.GLFW_KEY_R
-                    && ScreenActions.keyR(screen)) {
+                    && ScreenActions.key(screen, event.getKeyCode())) {
                 event.setCanceled(true);
             }
         }

@@ -4,7 +4,7 @@ import net.minecraft.client.gui.GuiGraphics;
 
 /** Two small icon buttons drawn by hand: a sort glyph (bars of falling length) and a hamburger (three bars). */
 public final class ButtonWidget {
-    public static final int SIZE = 12;
+    public static final int SIZE = 8;
 
     private static final int FRAME = 0xFF2E2A46;
     private static final int FACE = 0xFF1A1830;
@@ -18,16 +18,16 @@ public final class ButtonWidget {
     public static void drawSort(GuiGraphics g, int x, int y, boolean hovered, boolean locked) {
         frame(g, x, y, hovered);
         int color = locked ? LOCKED_ICON : ICON;
-        int[] widths = {8, 6, 4};
+        int[] widths = {6, 4, 2};
         for (int i = 0; i < widths.length; i++) {
-            g.fill(x + 2, y + 2 + i * 3, x + 2 + widths[i], y + 3 + i * 3, color);
+            g.fill(x + 1, y + 1 + i * 2, x + 1 + widths[i], y + 2 + i * 2, color);
         }
     }
 
     public static void drawMenu(GuiGraphics g, int x, int y, boolean hovered) {
         frame(g, x, y, hovered);
         for (int i = 0; i < 3; i++) {
-            g.fill(x + 2, y + 2 + i * 3, x + SIZE - 2, y + 3 + i * 3, ICON);
+            g.fill(x + 1, y + 1 + i * 2, x + SIZE - 1, y + 2 + i * 2, ICON);
         }
     }
 

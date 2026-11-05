@@ -11,7 +11,6 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
-import org.lwjgl.glfw.GLFW;
 
 /** Server-side hooks: autofill runs each player tick, and its state is dropped on logout. */
 @EventBusSubscriber(modid = BarelySorts.MODID)
@@ -56,8 +55,7 @@ final class NeoForgeScreenEvents {
     @SubscribeEvent
     public static void onKey(ScreenEvent.KeyPressed.Pre event) {
         if (event.getScreen() instanceof AbstractContainerScreen<?> screen
-                && event.getKeyCode() == GLFW.GLFW_KEY_R
-                && ScreenActions.keyR(screen)) {
+                && ScreenActions.key(screen, event.getKeyCode())) {
             event.setCanceled(true);
         }
     }
