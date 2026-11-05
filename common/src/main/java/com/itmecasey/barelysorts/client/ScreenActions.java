@@ -36,6 +36,8 @@ public final class ScreenActions {
 
     private static final int ROW_HEIGHT = 12;
     private static final int ROW_PADDING = 6;
+    /** Where the popup text's top sits inside its row, in pixels. Tuned by eye against the row highlight. */
+    private static final int ROW_TEXT_OFFSET = 4;
     private static final int MIN_POPUP_WIDTH = 80;
     private static final int EDGE = 2;
     private static final int FRAME = 0xFF2E2A46;
@@ -659,8 +661,8 @@ public final class ScreenActions {
             if (hover) {
                 g.fill(left + 1, rowTop, left + width - 1, rowTop + ROW_HEIGHT, HOVER_FACE);
             }
-            // Left-aligned, and centered vertically in the row.
-            g.text(small(labels.get(row)), left + ROW_PADDING, rowTop + (ROW_HEIGHT - font.lineHeight) / 2, TEXT);
+            // Left-aligned. The pixel font sits high in its line box, so it is nudged down to center on the row.
+            g.text(small(labels.get(row)), left + ROW_PADDING, rowTop + ROW_TEXT_OFFSET, TEXT);
         }
     }
 
