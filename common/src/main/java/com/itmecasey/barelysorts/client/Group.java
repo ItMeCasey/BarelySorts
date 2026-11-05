@@ -4,7 +4,6 @@ import com.itmecasey.barelysorts.Platform;
 import com.itmecasey.barelysorts.Sorter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.inventory.Slot;
 
@@ -20,7 +19,7 @@ public record Group(String name, String settingsKey, List<Slot> slots, int left,
     /** Every group the open screen shows, or none for screens that cannot be sorted (creative, for one). */
     public static List<Group> of(AbstractContainerScreen<?> screen) {
         List<Group> groups = new ArrayList<>();
-        if (screen instanceof CreativeModeInventoryScreen || Minecraft.getInstance().player == null) {
+        if (!Sorter.isStorage(screen.getMenu()) || Minecraft.getInstance().player == null) {
             return groups;
         }
         var inventory = Minecraft.getInstance().player.getInventory();
@@ -68,17 +67,20 @@ public record Group(String name, String settingsKey, List<Slot> slots, int left,
         return mouseX >= left - 2 && mouseX < right + 2 && mouseY >= top - 2 && mouseY < bottom + 2;
     }
 
-    /** The sort button sits just right of the group, at its top. */
+    /** The two buttons sit over the group's top-right corner, just above its top row of slots. */
+    public int menuButtonX() {
+        return right - ButtonWidget.SIZE;
+    }
+
+    public int menuButtonY() {
+        return top - ButtonWidget.SIZE - 3;
+    }
+
     public int sortButtonX() {
-        return right + 3;
+        return menuButtonX() - ButtonWidget.SIZE - 2;
     }
 
     public int sortButtonY() {
-        return top;
-    }
-
-    /** The settings button sits under the sort button. */
-    public int settingsButtonY() {
-        return top + ButtonWidget.SIZE + 2;
+        return menuButtonY();
     }
 }

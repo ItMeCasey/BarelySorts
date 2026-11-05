@@ -21,6 +21,7 @@ public final class ScreenActions {
     private static final int POPUP_WIDTH = 104;
     private static final int ROW_HEIGHT = 12;
     private static final int ROWS = 3;
+    private static final int EDGE = 2;
     private static final float TEXT_SCALE = 0.75f;
     private static final int FRAME = 0xFF2E2A46;
     private static final int FACE = 0xFF1A1830;
@@ -39,19 +40,19 @@ public final class ScreenActions {
         for (Group group : Group.of(screen)) {
             boolean locked = ClientSettings.get(group.settingsKey()).locked();
             boolean sortHover = ButtonWidget.inside(mouseX, mouseY, group.sortButtonX(), group.sortButtonY());
-            boolean menuHover = ButtonWidget.inside(mouseX, mouseY, group.sortButtonX(), group.settingsButtonY());
+            boolean menuHover = ButtonWidget.inside(mouseX, mouseY, group.menuButtonX(), group.menuButtonY());
             ButtonWidget.drawSort(graphics, group.sortButtonX(), group.sortButtonY(), sortHover, locked);
-            ButtonWidget.drawMenu(graphics, group.sortButtonX(), group.settingsButtonY(), menuHover);
+            ButtonWidget.drawMenu(graphics, group.menuButtonX(), group.menuButtonY(), menuHover);
             if (sortHover) {
                 tooltip = locked ? "Locked: sorting is off" : "Sort this group";
             } else if (menuHover) {
                 tooltip = "Sort settings";
             }
             if (isPopupOpen(screen, group)) {
-                String popupTip = renderPopup(graphics, screen, group, mouseX, mouseY);
-                tooltip = popupTip != null ? popupTip : tooltip;
+                renderPopup(graphics, group, mouseX, mouseY);
             }
         }
+        // Tooltips are for the two buttons only. The popup rows have none.
         if (tooltip != null) {
             graphics.renderTooltip(Minecraft.getInstance().font, Component.literal(tooltip),
                     (int) mouseX, (int) mouseY);
@@ -71,7 +72,7 @@ public final class ScreenActions {
         }
         for (Group group : Group.of(screen)) {
             if (button == LEFT_BUTTON
-                    && ButtonWidget.inside(mouseX, mouseY, group.sortButtonX(), group.settingsButtonY())) {
+                    && ButtonWidget.inside(mouseX, mouseY, group.menuButtonX(), group.menuButtonY())) {
                 togglePopup(screen, group);
                 return true;
             }
@@ -147,17 +148,14 @@ public final class ScreenActions {
         return popupScreen == screen && group.settingsKey().equals(popupKey);
     }
 
-    /** The popup sits to the right of the settings button, or to its left when the screen has no room. */
+    /** The popup hangs below the settings button, lined up with its right edge, and stays on screen. */
     private static int popupLeft(Group group) {
-        int right = group.sortButtonX() + ButtonWidget.SIZE + 2;
-        if (right + POPUP_WIDTH > Minecraft.getInstance().getWindow().getGuiScaledWidth()) {
-            return group.sortButtonX() - POPUP_WIDTH - 2;
-        }
-        return right;
+        int left = group.menuButtonX() + ButtonWidget.SIZE - POPUP_WIDTH;
+        return Math.max(EDGE, left);
     }
 
     private static int popupTop(Group group) {
-        return group.settingsButtonY();
+        return group.menuButtonY() + ButtonWidget.SIZE + 2;
     }
 
     private static int popupHeight() {
@@ -170,23 +168,15 @@ public final class ScreenActions {
         return mouseX >= left && mouseX < left + POPUP_WIDTH && mouseY >= top && mouseY < top + popupHeight();
     }
 
-    /** Draws the popup and returns the tooltip for the row under the mouse, if any. */
-    private static String renderPopup(GuiGraphics g, AbstractContainerScreen<?> screen, Group group,
-                                      double mouseX, double mouseY) {
+    private static void renderPopup(GuiGraphics g, Group group, double mouseX, double mouseY) {
         int left = popupLeft(group);
         int top = popupTop(group);
         GroupSettings settings = ClientSettings.get(group.settingsKey());
         String[] labels = {methodLabel(settings), keyLabel(settings), lockLabel(settings)};
-        String[] tips = {
-                "Rows fill left to right, then down. Columns fill down, then right.",
-                "Quantity: most first. Item name: A to Z. Mod name: grouped by mod.",
-                "A locked group is never sorted."
-        };
 
         g.fill(left - 1, top - 1, left + POPUP_WIDTH + 1, top + popupHeight() + 1, FRAME);
         g.fill(left, top, left + POPUP_WIDTH, top + popupHeight(), FACE);
 
-        String tooltip = null;
         var font = Minecraft.getInstance().font;
         for (int row = 0; row < ROWS; row++) {
             int rowTop = top + 2 + row * ROW_HEIGHT;
@@ -194,7 +184,6 @@ public final class ScreenActions {
                     && mouseY >= rowTop && mouseY < rowTop + ROW_HEIGHT;
             if (hover) {
                 g.fill(left + 1, rowTop, left + POPUP_WIDTH - 1, rowTop + ROW_HEIGHT, HOVER_FACE);
-                tooltip = tips[row];
             }
             g.pose().pushPose();
             g.pose().translate(left + 4, rowTop + 2, 0);
@@ -202,7 +191,6 @@ public final class ScreenActions {
             g.drawString(font, labels[row], 0, 0, TEXT, false);
             g.pose().popPose();
         }
-        return tooltip;
     }
 
     private static void toggle(Group group, int row) {
