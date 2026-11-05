@@ -47,7 +47,7 @@ final class ClientSetup {
         });
         ScreenEvent.MouseButtonPressed.Pre.BUS.addListener((ScreenEvent.MouseButtonPressed.Pre e) ->
                 e.getScreen() instanceof AbstractContainerScreen<?> screen
-                        && ScreenActions.mouseButton(screen, e.getMouseX(), e.getMouseY(), e.getButton()));
+                        && ScreenActions.mouseButton(screen, e.getMouseX(), e.getMouseY(), e.getInfo().button()));
         ScreenEvent.KeyPressed.Pre.BUS.addListener((ScreenEvent.KeyPressed.Pre e) ->
                 e.getScreen() instanceof AbstractContainerScreen<?> screen
                         && ScreenActions.key(screen, e.getKeyCode(), m -> m.matches(

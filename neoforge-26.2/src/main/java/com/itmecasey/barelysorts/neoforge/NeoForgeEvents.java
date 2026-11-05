@@ -52,7 +52,7 @@ final class NeoForgeScreenEvents {
     @SubscribeEvent
     public static void onMouse(ScreenEvent.MouseButtonPressed.Pre event) {
         if (event.getScreen() instanceof AbstractContainerScreen<?> screen
-                && ScreenActions.mouseButton(screen, event.getMouseX(), event.getMouseY(), event.getButton())) {
+                && ScreenActions.mouseButton(screen, event.getMouseX(), event.getMouseY(), event.getMouseButtonEvent().button())) {
             event.setCanceled(true);
         }
     }

@@ -28,7 +28,8 @@ import java.util.stream.Collectors;
  * by hand.
  */
 public final class ScreenActions {
-    private static final int LEFT_BUTTON = 0;
+    /** The left button is 0 in older versions and 1 in 26.3, so read it from the game. */
+    private static final int LEFT_BUTTON = InputConstants.MOUSE_BUTTON_LEFT;
 
     private static final int ROW_HEIGHT = 12;
     private static final int ROW_PADDING = 6;
