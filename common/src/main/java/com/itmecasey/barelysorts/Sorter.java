@@ -2,7 +2,6 @@ package com.itmecasey.barelysorts;
 
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
@@ -393,7 +392,7 @@ public final class Sorter {
     }
 
     private static String identity(ItemStack stack) {
-        ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        var id = BuiltInRegistries.ITEM.getKey(stack.getItem());
         return id + "#" + Compat.dataHash(stack);
     }
 

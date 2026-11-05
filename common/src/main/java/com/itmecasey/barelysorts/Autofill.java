@@ -5,7 +5,6 @@ import com.google.gson.reflect.TypeToken;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.storage.LevelResource;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -115,7 +114,7 @@ public final class Autofill {
     }
 
     private static Path file(ServerPlayer player) {
-        return player.getServer().getWorldPath(LevelResource.ROOT).resolve(FILE_NAME);
+        return Compat.worldFile(player, FILE_NAME);
     }
 
     private static Map<String, Saved> readFile(ServerPlayer player) {

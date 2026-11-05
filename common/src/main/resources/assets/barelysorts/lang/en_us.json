@@ -1,5 +1,6 @@
 {
   "key.categories.barelysorts": "BarelySorts",
+  "key.category.barelysorts.keys": "BarelySorts",
   "key.barelysorts.sort": "Sort group under the mouse",
   "key.barelysorts.mark": "Hold to mark slots for deletion",
   "key.barelysorts.sort_click": "Sort group when clicked (mouse button)"

@@ -11,7 +11,6 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
@@ -29,10 +28,6 @@ import java.util.stream.Collectors;
  */
 public final class ScreenActions {
     private static final int LEFT_BUTTON = 0;
-
-    /** Our own pixel font (common/src/main/resources/assets/barelysorts/font), used for popup and hint text. */
-    private static final ResourceLocation SMALL_FONT =
-            Compat.id("barelysorts", "small");
 
     private static final int ROW_HEIGHT = 12;
     private static final int ROW_PADDING = 6;
@@ -235,7 +230,7 @@ public final class ScreenActions {
                 return true;
             }
         }
-        if (KeyBindings.SORT.matches(keyCode, scanCode)) {
+        if (Compat.keyMatches(KeyBindings.SORT, keyCode, scanCode)) {
             return keyR(screen);
         }
         return false;
@@ -312,7 +307,7 @@ public final class ScreenActions {
      */
     private static void updateShiftDrag(AbstractContainerScreen<?> screen, double mouseX, double mouseY) {
         // Shift-drag needs the left mouse button held as well, so moving the mouse with Shift alone does nothing.
-        boolean leftHeld = GLFW.glfwGetMouseButton(Minecraft.getInstance().getWindow().getWindow(),
+        boolean leftHeld = GLFW.glfwGetMouseButton(Compat.windowHandle(),
                 GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS;
         if (!KeyBindings.shiftDown() || !leftHeld) {
             dragged.clear();
@@ -606,7 +601,7 @@ public final class ScreenActions {
     }
 
     private static Component small(String text) {
-        return Component.literal(text).withStyle(Style.EMPTY.withFont(SMALL_FONT));
+        return Component.literal(text).withStyle(Compat.smallFont());
     }
 
     /** The popup hangs below the settings button, lined up with its right edge, and stays on screen. */
