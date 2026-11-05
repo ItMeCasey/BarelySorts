@@ -1,0 +1,69 @@
+name: Bug report
+description: Something in BarelySorts doesn't work the way it should.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this. If the game crashed, use **Crash report** instead.
+        If a specific inventory sorts the wrong way or doesn't get buttons, use **Sorting problem**.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you saw, and what you expected to see.
+      placeholder: Autofill moves a stack into my hotbar when I drag the last item out by hand.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Put one torch in a hotbar slot
+        2. Drag it to another slot
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: BarelySorts version
+      description: From the jar's file name or the mod list.
+    validations:
+      required: true
+  - type: input
+    id: minecraft
+    attributes:
+      label: Minecraft and loader versions
+      placeholder: Minecraft 1.21.1, NeoForge ...
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where is BarelySorts installed?
+      options:
+        - Single player
+        - Client and server
+        - Client only, on a server without BarelySorts
+    validations:
+      required: true
+  - type: textarea
+    id: mods
+    attributes:
+      label: Other mods
+      description: The mods in your instance, or a link to your modpack. Leave empty if it happens with BarelySorts alone.
+  - type: textarea
+    id: media
+    attributes:
+      label: Screenshots or video
+      description: Drag images or a short clip in here.
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: |
+        `logs/latest.log` from your Minecraft folder. For a long log, upload it to https://mclo.gs or a GitHub gist and paste the link.
+      render: text

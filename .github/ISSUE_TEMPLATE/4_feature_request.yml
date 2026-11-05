@@ -1,0 +1,39 @@
+name: Feature request
+description: An idea for something BarelySorts could do.
+title: "[Idea] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like?
+      placeholder: Sort by enchantment, so enchanted books group together.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why would it help?
+      description: What you're trying to do in game, and what you do now instead.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: What part of BarelySorts is it about?
+      options:
+        - A new way to sort
+        - Locks
+        - Hotbar autofill
+        - Mass delete
+        - Buttons and settings screens
+        - Keys and controls
+        - Support for another mod's inventory
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: mockup
+    attributes:
+      label: Sketch or example
+      description: A mockup, a screenshot from another mod, or a short description of how it would work.

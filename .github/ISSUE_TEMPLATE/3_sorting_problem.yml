@@ -1,0 +1,61 @@
+name: Sorting problem
+description: An inventory sorts the wrong way, gets no buttons, or shouldn't have them.
+title: "[Sorting] "
+labels: ["sorting"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this when a specific inventory misbehaves, including containers from other mods.
+        BarelySorts only touches storage containers (chests, barrels, shulker boxes, hoppers, droppers) and your main inventory. Crafting grids, furnaces and machines are left alone on purpose.
+  - type: input
+    id: target
+    attributes:
+      label: Container or screen
+      description: Its name, and its id if you know it.
+      placeholder: Chest, or Iron Chest (ironchest:iron_chest)
+    validations:
+      required: true
+  - type: input
+    id: mod
+    attributes:
+      label: Which mod adds it?
+      placeholder: Minecraft, or the mod's name and version
+    validations:
+      required: true
+  - type: dropdown
+    id: problem
+    attributes:
+      label: What is wrong?
+      options:
+        - It has no sort or settings buttons, and should
+        - It has buttons, and shouldn't
+        - Items end up in the wrong order
+        - Items don't merge into full stacks
+        - A locked slot or group was sorted
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: What happened, and what you expected. Say which sort method (rows or columns) and sort by (quantity, item name or mod name) were set. A screenshot is best.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: BarelySorts version
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where is BarelySorts installed?
+      options:
+        - Single player
+        - Client and server
+        - Client only, on a server without BarelySorts
+    validations:
+      required: true
