@@ -1,7 +1,5 @@
 package com.itmecasey.barelysorts.client;
 
-import net.minecraft.client.gui.GuiGraphics;
-
 /** Two small icon buttons drawn by hand: a sort glyph (bars of falling length) and a hamburger (three bars). */
 public final class ButtonWidget {
     public static final int SIZE = 8;
@@ -14,7 +12,7 @@ public final class ButtonWidget {
     private ButtonWidget() {
     }
 
-    public static void drawSort(GuiGraphics g, int x, int y, boolean hovered) {
+    public static void drawSort(Draw g, int x, int y, boolean hovered) {
         frame(g, x, y, hovered);
         int[] widths = {6, 4, 2};
         for (int i = 0; i < widths.length; i++) {
@@ -22,14 +20,14 @@ public final class ButtonWidget {
         }
     }
 
-    public static void drawMenu(GuiGraphics g, int x, int y, boolean hovered) {
+    public static void drawMenu(Draw g, int x, int y, boolean hovered) {
         frame(g, x, y, hovered);
         for (int i = 0; i < 3; i++) {
             g.fill(x + 1, y + 1 + i * 2, x + SIZE - 1, y + 2 + i * 2, ICON);
         }
     }
 
-    private static void frame(GuiGraphics g, int x, int y, boolean hovered) {
+    private static void frame(Draw g, int x, int y, boolean hovered) {
         g.fill(x - 1, y - 1, x + SIZE + 1, y + SIZE + 1, FRAME);
         g.fill(x, y, x + SIZE, y + SIZE, hovered ? HOVER_FACE : FACE);
     }

@@ -146,7 +146,7 @@ public final class Autofill {
     private static void refill(Inventory inventory, int hotbarSlot, ItemStack used, Set<Integer> locked) {
         for (int slot = MAIN_START; slot <= MAIN_END; slot++) {
             ItemStack candidate = inventory.getItem(slot);
-            if (!locked.contains(slot) && !candidate.isEmpty() && ItemStack.isSameItemSameComponents(candidate, used)) {
+            if (!locked.contains(slot) && !candidate.isEmpty() && Compat.sameItem(candidate, used)) {
                 inventory.setItem(hotbarSlot, candidate);
                 inventory.setItem(slot, ItemStack.EMPTY);
                 return;

@@ -1,0 +1,46 @@
+plugins {
+    id 'java-library'
+    id 'idea'
+    id 'net.neoforged.gradle.userdev' version '7.0.192'
+}
+
+version = mod_version
+group = mod_group
+
+base {
+    archivesName = "${mod_id}-neoforge-mc${minecraft_version}"
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+// NeoForge 1.20.1 keeps the Forge packages, so it compiles the Forge 1.20.1 layer too; shared code comes from ../common.
+sourceSets {
+    main {
+        java.srcDir '../version-1.20.1/src/main/java'
+        java.srcDir '../forge-1.20.1/src/main/java'
+        java.srcDir '../common/src/main/java'
+        resources.srcDir '../common/src/main/resources'
+    }
+}
+
+dependencies {
+    implementation "net.neoforged:forge:${minecraft_version}-${neo_version}"
+}
+
+// The Forge 1.20.1 mods.toml works for NeoForge 1.20.1 as well: it names the forge dependency, which NeoForge keeps.
+var generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
+    var replaceProperties = [
+        minecraft_version: minecraft_version, forge_version: neo_version,
+        mod_id: mod_id, mod_name: mod_name, mod_license: mod_license, mod_version: mod_version,
+        mod_authors: mod_authors, mod_description: mod_description,
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from '../forge-1.20.1/src/main/templates'
+    into 'build/generated/sources/modMetadata'
+}
+sourceSets.main.resources.srcDir generateModMetadata
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}

@@ -15,6 +15,7 @@ java {
 // Shared code lives in ../common and is compiled into this loader layer and the combined jar.
 sourceSets {
     main {
+        java.srcDir '../version-1.21.1/src/main/java'
         java.srcDir '../common/src/main/java'
         resources.srcDir '../common/src/main/resources'
     }

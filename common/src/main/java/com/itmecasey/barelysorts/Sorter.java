@@ -199,13 +199,13 @@ public final class Sorter {
         for (Slot slot : menu.slots) {
             if (!(slot instanceof ResultSlot) && slot.hasItem() && (slot.container == inventory) == fromPlayer
                     && !locked.contains(slot.index)
-                    && ItemStack.isSameItemSameComponents(slot.getItem(), template)) {
+                    && Compat.sameItem(slot.getItem(), template)) {
                 matches.add(slot.index);
             }
         }
         for (int index : matches) {
             Slot slot = menu.getSlot(index);
-            if (slot.hasItem() && ItemStack.isSameItemSameComponents(slot.getItem(), template)) {
+            if (slot.hasItem() && Compat.sameItem(slot.getItem(), template)) {
                 guardedQuickMove(player, menu, index, locked);
             }
         }
@@ -228,7 +228,7 @@ public final class Sorter {
             Slot slot = menu.getSlot(entry.getKey());
             ItemStack now = slot.getItem();
             ItemStack was = entry.getValue();
-            boolean sameItem = ItemStack.isSameItemSameComponents(now, was);
+            boolean sameItem = Compat.sameItem(now, was);
             if (sameItem && now.getCount() == was.getCount()) {
                 continue;
             }
@@ -361,7 +361,7 @@ public final class Sorter {
                 if (stack.isEmpty()) {
                     break;
                 }
-                if (ItemStack.isSameItemSameComponents(existing, stack) && existing.getCount() < cap) {
+                if (Compat.sameItem(existing, stack) && existing.getCount() < cap) {
                     int move = Math.min(cap - existing.getCount(), stack.getCount());
                     existing.grow(move);
                     stack.shrink(move);
@@ -384,7 +384,7 @@ public final class Sorter {
 
     private static String identity(ItemStack stack) {
         ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
-        return id + "#" + stack.getComponents().hashCode();
+        return id + "#" + Compat.dataHash(stack);
     }
 
     private static String name(ItemStack stack) {

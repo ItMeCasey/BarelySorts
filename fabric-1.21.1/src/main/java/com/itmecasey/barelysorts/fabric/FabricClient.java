@@ -5,6 +5,7 @@ import com.itmecasey.barelysorts.client.AutofillSync;
 import com.itmecasey.barelysorts.client.KeyBindings;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import com.itmecasey.barelysorts.client.ScreenActions;
+import com.itmecasey.barelysorts.compat.DrawImpl;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -41,7 +42,7 @@ public final class FabricClient implements ClientModInitializer {
                 return;
             }
             ScreenEvents.afterRender(screen).register((s, graphics, mouseX, mouseY, delta) ->
-                    ScreenActions.render(container, graphics, mouseX, mouseY));
+                    ScreenActions.render(container, new DrawImpl(graphics), mouseX, mouseY));
             ScreenMouseEvents.allowMouseClick(screen).register((s, mouseX, mouseY, button) ->
                     !ScreenActions.mouseButton(container, mouseX, mouseY, button));
             ScreenKeyboardEvents.allowKeyPress(screen).register((s, key, scancode, modifiers) ->

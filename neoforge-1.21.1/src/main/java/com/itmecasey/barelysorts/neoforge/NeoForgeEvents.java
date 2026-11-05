@@ -6,6 +6,7 @@ import com.itmecasey.barelysorts.client.AutofillSync;
 import com.itmecasey.barelysorts.client.KeyBindings;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import com.itmecasey.barelysorts.client.ScreenActions;
+import com.itmecasey.barelysorts.compat.DrawImpl;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.server.level.ServerPlayer;
@@ -44,7 +45,7 @@ final class NeoForgeScreenEvents {
     @SubscribeEvent
     public static void onRender(ScreenEvent.Render.Post event) {
         if (event.getScreen() instanceof AbstractContainerScreen<?> screen) {
-            ScreenActions.render(screen, event.getGuiGraphics(), event.getMouseX(), event.getMouseY());
+            ScreenActions.render(screen, new DrawImpl(event.getGuiGraphics()), event.getMouseX(), event.getMouseY());
         }
     }
 

@@ -15,6 +15,7 @@ import net.minecraft.server.level.ServerPlayer;
 public final class FabricBarelySorts implements ModInitializer {
     @Override
     public void onInitialize() {
+        com.itmecasey.barelysorts.Compat.init(new com.itmecasey.barelysorts.compat.CompatImpl());
         PayloadTypeRegistry.playC2S().register(FabricSortPayload.ID, FabricSortPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(FabricSortPayload.ID, (payload, context) ->
                 context.server().execute(() -> Sorter.sortGroup(context.player(), payload.containerId(),

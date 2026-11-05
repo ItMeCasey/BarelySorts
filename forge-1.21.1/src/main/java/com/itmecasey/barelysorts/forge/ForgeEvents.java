@@ -5,6 +5,7 @@ import com.itmecasey.barelysorts.BarelySorts;
 import com.itmecasey.barelysorts.client.AutofillSync;
 import com.itmecasey.barelysorts.client.KeyBindings;
 import com.itmecasey.barelysorts.client.ScreenActions;
+import com.itmecasey.barelysorts.compat.DrawImpl;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -55,7 +56,7 @@ public final class ForgeEvents {
         @SubscribeEvent
         public static void onRender(ScreenEvent.Render.Post event) {
             if (event.getScreen() instanceof AbstractContainerScreen<?> screen) {
-                ScreenActions.render(screen, event.getGuiGraphics(), event.getMouseX(), event.getMouseY());
+                ScreenActions.render(screen, new DrawImpl(event.getGuiGraphics()), event.getMouseX(), event.getMouseY());
             }
         }
 

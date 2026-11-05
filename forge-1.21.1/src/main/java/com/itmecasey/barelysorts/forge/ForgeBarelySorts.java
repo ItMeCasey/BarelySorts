@@ -17,6 +17,7 @@ public final class ForgeBarelySorts {
     private static SimpleChannel channel;
 
     public ForgeBarelySorts(FMLJavaModLoadingContext context) {
+        com.itmecasey.barelysorts.Compat.init(new com.itmecasey.barelysorts.compat.CompatImpl());
         channel = ChannelBuilder.named(ResourceLocation.fromNamespaceAndPath(BarelySorts.MODID, "sort"))
                 .networkProtocolVersion(1)
                 .optional()

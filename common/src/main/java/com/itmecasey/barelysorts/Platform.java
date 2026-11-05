@@ -35,7 +35,7 @@ public final class Platform {
     }
 
     private static Supplier<Path> configDir = () -> Path.of("config");
-    private static KeyCodeReader keyCodeReader = mapping -> -1;
+    private static KeyCodeReader keyCodeReader;
     private static GuiOrigin guiOrigin;
     private static SortSender sortSender = (containerId, group, method, key, lockedIds) -> {
     };
@@ -67,7 +67,7 @@ public final class Platform {
 
     /** The key code a mapping is bound to right now, after any rebinding in Options. */
     public static int keyCode(KeyMapping mapping) {
-        return keyCodeReader.keyCode(mapping);
+        return keyCodeReader == null ? -1 : keyCodeReader.keyCode(mapping);
     }
 
     public static Path configDir() {

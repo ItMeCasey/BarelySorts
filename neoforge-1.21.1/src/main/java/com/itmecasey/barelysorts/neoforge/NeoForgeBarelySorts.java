@@ -13,6 +13,7 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 @Mod(BarelySorts.MODID)
 public final class NeoForgeBarelySorts {
     public NeoForgeBarelySorts(IEventBus modBus) {
+        com.itmecasey.barelysorts.Compat.init(new com.itmecasey.barelysorts.compat.CompatImpl());
         modBus.addListener(this::registerPayloads);
         Platform.init(FMLPaths.CONFIGDIR::get,
                 (containerId, group, method, key, lockedIds) -> PacketDistributor.sendToServer(

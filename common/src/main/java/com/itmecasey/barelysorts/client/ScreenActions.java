@@ -1,12 +1,13 @@
 package com.itmecasey.barelysorts.client;
 
 import com.itmecasey.barelysorts.GroupSettings;
+import com.itmecasey.barelysorts.Compat;
 import com.itmecasey.barelysorts.Platform;
 import com.itmecasey.barelysorts.Sorter;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -31,7 +32,7 @@ public final class ScreenActions {
 
     /** Our own pixel font (common/src/main/resources/assets/barelysorts/font), used for popup and hint text. */
     private static final ResourceLocation SMALL_FONT =
-            ResourceLocation.fromNamespaceAndPath("barelysorts", "small");
+            Compat.id("barelysorts", "small");
 
     private static final int ROW_HEIGHT = 12;
     private static final int ROW_PADDING = 6;
@@ -86,13 +87,13 @@ public final class ScreenActions {
     private ScreenActions() {
     }
 
-    public static void render(AbstractContainerScreen<?> screen, GuiGraphics graphics, double mouseX, double mouseY) {
+    public static void render(AbstractContainerScreen<?> screen, Draw graphics, double mouseX, double mouseY) {
         updateMarking(screen);
         updateShiftDrag(screen, mouseX, mouseY);
 
         // Everything below is drawn above the item stacks, which the game draws higher than plain fills.
-        graphics.pose().pushPose();
-        graphics.pose().translate(0, 0, OVERLAY_Z);
+        graphics.push();
+        graphics.lift(OVERLAY_Z);
         String tooltip = null;
         for (Group group : Group.of(screen)) {
             boolean sortHover = ButtonWidget.inside(mouseX, mouseY, group.sortButtonX(), group.sortButtonY());
@@ -118,11 +119,10 @@ public final class ScreenActions {
         if (confirmScreen == screen) {
             renderConfirm(graphics, screen, mouseX, mouseY);
         }
-        graphics.pose().popPose();
+        graphics.pop();
         // Tooltips are for the two buttons only. The popup rows have none.
         if (tooltip != null && confirmScreen != screen) {
-            graphics.renderTooltip(Minecraft.getInstance().font, Component.literal(tooltip),
-                    (int) mouseX, (int) mouseY);
+            graphics.tooltip(Component.literal(tooltip), (int) mouseX, (int) mouseY);
         }
     }
 
@@ -339,7 +339,7 @@ public final class ScreenActions {
     }
 
     /** Outlines marked slots of the group in red. */
-    private static void drawMarked(GuiGraphics g, AbstractContainerScreen<?> screen, Group group) {
+    private static void drawMarked(Draw g, AbstractContainerScreen<?> screen, Group group) {
         if (marked.isEmpty()) {
             return;
         }
@@ -416,7 +416,7 @@ public final class ScreenActions {
         return confirmTop(screen) + confirmHeight() - 22;
     }
 
-    private static void renderConfirm(GuiGraphics g, AbstractContainerScreen<?> screen, double mouseX, double mouseY) {
+    private static void renderConfirm(Draw g, AbstractContainerScreen<?> screen, double mouseX, double mouseY) {
         int left = confirmLeft(screen);
         int top = confirmTop(screen);
         int height = confirmHeight();
@@ -425,7 +425,7 @@ public final class ScreenActions {
 
         g.fill(left - 1, top - 1, left + DIALOG_WIDTH + 1, top + height + 1, FRAME);
         g.fill(left, top, left + DIALOG_WIDTH, top + height, FACE);
-        g.drawCenteredString(font, small("Delete " + count + (count == 1 ? " stack?" : " stacks?")),
+        g.centeredText(small("Delete " + count + (count == 1 ? " stack?" : " stacks?")),
                 left + DIALOG_WIDTH / 2, top + 7, TEXT);
 
         // The actual stacks, with their counts, so you can see exactly what goes.
@@ -434,26 +434,25 @@ public final class ScreenActions {
             ItemStack stack = screen.getMenu().getSlot(confirmSlots.get(i)).getItem();
             int x = left + 8 + (i % DIALOG_COLUMNS) * 18;
             int y = top + 20 + (i / DIALOG_COLUMNS) * 18;
-            g.renderItem(stack, x, y);
-            g.renderItemDecorations(font, stack, x, y);
+            g.item(stack, x, y);
         }
         if (overflowing()) {
-            g.drawCenteredString(font, small("+" + (count - shown) + " more"), left + DIALOG_WIDTH / 2,
+            g.centeredText(small("+" + (count - shown) + " more"), left + DIALOG_WIDTH / 2,
                     top + 20 + itemRows() * 18 + 2, TEXT);
         }
-        g.drawCenteredString(font, small("This cannot be undone."), left + DIALOG_WIDTH / 2, top + height - 33, TEXT);
+        g.centeredText(small("This cannot be undone."), left + DIALOG_WIDTH / 2, top + height - 33, TEXT);
 
         int buttonY = top + height - 22;
         drawButton(g, font, left + 12, buttonY, "Delete", RED, mouseX, mouseY);
         drawButton(g, font, left + DIALOG_WIDTH - 12 - BUTTON_WIDTH, buttonY, "Cancel", GOLD, mouseX, mouseY);
     }
 
-    private static void drawButton(GuiGraphics g, Font font, int x, int y, String label, int color,
+    private static void drawButton(Draw g, Font font, int x, int y, String label, int color,
                                    double mouseX, double mouseY) {
         boolean hover = inside(mouseX, mouseY, x, y, BUTTON_WIDTH, BUTTON_HEIGHT);
         g.fill(x - 1, y - 1, x + BUTTON_WIDTH + 1, y + BUTTON_HEIGHT + 1, color);
         g.fill(x, y, x + BUTTON_WIDTH, y + BUTTON_HEIGHT, hover ? HOVER_FACE : FACE);
-        g.drawCenteredString(font, small(label), x + BUTTON_WIDTH / 2, y + 3, color);
+        g.centeredText(small(label), x + BUTTON_WIDTH / 2, y + 3, color);
     }
 
     private static boolean inside(double mouseX, double mouseY, int x, int y, int width, int height) {
@@ -562,7 +561,7 @@ public final class ScreenActions {
     }
 
     /** Outlines every locked slot of the group with the given colors. */
-    private static void drawLocked(GuiGraphics g, AbstractContainerScreen<?> screen, Group group, int tint, int edge) {
+    private static void drawLocked(Draw g, AbstractContainerScreen<?> screen, Group group, int tint, int edge) {
         GroupSettings settings = ClientSettings.get(group.settingsKey());
         var inventory = Minecraft.getInstance().player.getInventory();
         int guiLeft = Platform.guiOrigin().left(screen);
@@ -582,7 +581,7 @@ public final class ScreenActions {
     }
 
     /** Says how to finish slot selection, just above the group. */
-    private static void drawSelectionHint(GuiGraphics g, Group group) {
+    private static void drawSelectionHint(Draw g, Group group) {
         Font font = Minecraft.getInstance().font;
         Component text = small("Click slots to lock. Esc to finish.");
         int x = group.left();
@@ -590,7 +589,7 @@ public final class ScreenActions {
         int width = font.width(text);
         // A dark plate behind the text keeps it readable over the inventory art.
         g.fill(x - 3, y - 2, x + width + 3, y + font.lineHeight + 2, FACE);
-        g.drawString(font, text, x, y, GOLD, false);
+        g.text(text, x, y, GOLD);
     }
 
     private static Component small(String text) {
@@ -632,7 +631,7 @@ public final class ScreenActions {
                 && mouseY >= top && mouseY < top + popupHeight(group);
     }
 
-    private static void renderPopup(GuiGraphics g, Group group, double mouseX, double mouseY) {
+    private static void renderPopup(Draw g, Group group, double mouseX, double mouseY) {
         int left = popupLeft(group);
         int top = popupTop(group);
         int width = popupWidth(group);
@@ -649,7 +648,7 @@ public final class ScreenActions {
             if (hover) {
                 g.fill(left + 1, rowTop, left + width - 1, rowTop + ROW_HEIGHT, HOVER_FACE);
             }
-            g.drawString(font, small(labels.get(row)), left + ROW_PADDING, rowTop + 2, TEXT, false);
+            g.text(small(labels.get(row)), left + ROW_PADDING, rowTop + 2, TEXT);
         }
     }
 

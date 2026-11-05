@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "barelysorts",
+  "version": "${version}",
+  "name": "${mod_name}",
+  "description": "${mod_description}",
+  "authors": ["${mod_authors}"],
+  "license": "${mod_license}",
+  "environment": "*",
+  "accessWidener": "barelysorts.accesswidener",
+  "entrypoints": {
+    "main": ["com.itmecasey.barelysorts.fabric.FabricBarelySorts"],
+    "client": ["com.itmecasey.barelysorts.fabric.FabricClient"]
+  },
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "minecraft": "~${minecraft}",
+    "java": ">=17",
+    "fabric-api": "*"
+  }
+}
