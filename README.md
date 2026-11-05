@@ -13,6 +13,7 @@ sorts it, and a hamburger that opens its settings.
 - Stackable items merge into full stacks before sorting.
 - The hotbar is never sorted and never moves.
 - **Autofill:** when the last item in a hotbar slot is used up, the same item moves in from the main inventory.
+- **Quick-move:** ctrl-click moves one item, shift-ctrl-click moves every item of that type, and holding shift and the left mouse button while dragging moves each stack you pass.
 
 ## Status
 
@@ -23,7 +24,6 @@ sorts it, and a hamburger that opens its settings.
 
 - Lock is enforced on the client only.
 - Moving the last hotbar item by hand also triggers autofill, because the two cannot be told apart yet.
-- The quick-move extras (ctrl-click one item, shift-ctrl-click all of a type, shift-drag) are not in this build.
 - Middle-click and R sort the group under the mouse. R may conflict with the recipe book key in some screens.
 
 ## License

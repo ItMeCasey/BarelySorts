@@ -14,6 +14,7 @@ BarelySorts adds two small buttons to each storage inventory. Press the sort but
 - **Locks:** lock a whole group so sorting skips it, or lock single slots and keep a favorite item exactly where it is. Locked slots get a faint gold outline.
 - **Hotbar autofill:** when the last item in a hotbar slot is used up, the same item moves in from your main inventory. Tools can swap at 1 durability or only once they break.
 - **Mass delete:** hold a key (X by default) and click slots to mark them in red. Let go to see the list of stacks with counts, then confirm to empty them.
+- **Quick-move shortcuts:** Ctrl-click moves one item, Shift-Ctrl-click moves every item of that type, and holding Shift and the left mouse button while dragging over slots moves each stack you pass.
 - **Server-safe:** sorting runs on the server, so it stays correct in multiplayer.
 - **Plays nicely with other mods:** Applied Energistics 2 screens are not touched.
 

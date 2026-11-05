@@ -22,7 +22,7 @@ Spend: none
 ## Interface
 - [x] Sort glyph and settings (hamburger) buttons on each inventory group (w:3)
 - [x] Settings screen: sort method, sort by, lock (w:3)
-- [ ] Quick-move extras: ctrl-click single item, shift-ctrl-click all of type, shift-drag (w:3)
+- [x] Quick-move extras: ctrl-click single item, shift-ctrl-click all of type, shift-drag (w:3)
 
 ## Testing and release
 - [ ] Unit tests for sort logic (w:2)

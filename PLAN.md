@@ -49,7 +49,7 @@ The first module built is `neoforge-1.21.1`, because its toolchain is already pr
 ## Open questions
 
 - Client-only settings (sort method, sort by, lock) are stored on the client for now. Lock is enforced on the client; the server does not check it yet.
-- Quick-move extras from the request (ctrl-click moves one item, shift-ctrl-click moves all of that type, shift-drag) are not in the first build.
+- Quick-move extras (ctrl-click moves one item, shift-ctrl-click moves all of that type, shift-drag) are in.
 - Middle-click and R are wired to sorting; R may conflict with the recipe book key in some screens.
 
 ## Combined jar (how it is built)
