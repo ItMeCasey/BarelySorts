@@ -2,6 +2,7 @@ package com.itmecasey.barelysorts.forge;
 
 import com.itmecasey.barelysorts.BarelySorts;
 import com.itmecasey.barelysorts.Platform;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
@@ -28,5 +29,16 @@ public final class ForgeBarelySorts {
         Platform.init(FMLPaths.CONFIGDIR::get,
                 (containerId, group, method, key) -> channel.send(
                         new ForgeSortMessage(containerId, group, method, key), PacketDistributor.SERVER.noArg()));
+        Platform.setGuiOrigin(new Platform.GuiOrigin() {
+            @Override
+            public int left(AbstractContainerScreen<?> screen) {
+                return screen.getGuiLeft();
+            }
+
+            @Override
+            public int top(AbstractContainerScreen<?> screen) {
+                return screen.getGuiTop();
+            }
+        });
     }
 }

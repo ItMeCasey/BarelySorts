@@ -63,3 +63,8 @@ The first module built is `neoforge-1.21.1`, because its toolchain is already pr
 
 Verified so far: both loader jars compile; a headless dedicated server starts on NeoForge and on Forge with the mod loaded
 (each module's own run). Not verified: the combined jar itself loaded by either loader, and client-side behavior.
+
+Fabric is the third layer for 1.21.1 (`fabric-1.21.1/`, Loom 1.9.2, Fabric API 0.116.17+1.21.1, loader 0.16.9). Its
+dedicated server needs a JDK 21 runtime: on JDK 25 the Mixin in fabric-gametest-api fails with a ClassNotFoundException
+for java.lang.System. Run it with `JAVA_HOME` pointing at a JDK 21 install. Fabric reads `leftPos`/`topPos` through
+`barelysorts.accesswidener`; NeoForge and Forge use `getGuiLeft()`/`getGuiTop()` through `Platform.GuiOrigin`.

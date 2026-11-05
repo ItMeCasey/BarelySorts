@@ -1,5 +1,6 @@
 package com.itmecasey.barelysorts.client;
 
+import com.itmecasey.barelysorts.Platform;
 import com.itmecasey.barelysorts.Sorter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -54,10 +55,12 @@ public record Group(String name, String settingsKey, List<Slot> slots, int left,
             maxX = Math.max(maxX, slot.x + 16);
             maxY = Math.max(maxY, slot.y + 16);
         }
-        int left = screen.getGuiLeft() + minX;
-        int top = screen.getGuiTop() + minY;
-        int right = screen.getGuiLeft() + maxX;
-        int bottom = screen.getGuiTop() + maxY;
+        int guiLeft = Platform.guiOrigin().left(screen);
+        int guiTop = Platform.guiOrigin().top(screen);
+        int left = guiLeft + minX;
+        int top = guiTop + minY;
+        int right = guiLeft + maxX;
+        int bottom = guiTop + maxY;
         return new Group(name, settingsKey, slots, left, top, right, bottom);
     }
 
