@@ -79,7 +79,7 @@ public record Group(String name, String settingsKey, List<Slot> slots, int left,
     }
 
     public int sortButtonX() {
-        return menuButtonX() - ButtonWidget.SIZE - 2;
+        return menuButtonX() - ButtonWidget.SIZE - 5;
     }
 
     public int sortButtonY() {

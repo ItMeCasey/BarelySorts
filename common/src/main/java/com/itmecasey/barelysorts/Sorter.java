@@ -24,6 +24,7 @@ import java.util.Map;
 public final class Sorter {
     public static final String GROUP_PLAYER = "player";
     public static final String GROUP_CONTAINER = "container";
+    public static final String AUTOFILL = "autofill";
 
     /** Player main inventory is slots 9 to 35 of the player's Inventory. */
     private static final int MAIN_START = 9;
@@ -32,13 +33,27 @@ public final class Sorter {
     private Sorter() {
     }
 
-    public static void sortGroup(ServerPlayer player, int containerId, String group, String methodName, String keyName) {
+    public static void sortGroup(ServerPlayer player, int containerId, String group, String methodName, String keyName,
+                                 String lockedIds) {
+        // Not a sort: the client sends its autofill setting ("true" or "false") under this group name.
+        if (AUTOFILL.equals(group)) {
+            Autofill.setReplaceAtOne(player.getUUID(), "true".equals(methodName));
+            return;
+        }
         AbstractContainerMenu menu = player.containerMenu;
         // The creative item picker is a client-only menu; its slots hold infinite stacks and are never sorted.
         if (menu.containerId != containerId || menu.getClass().getName().endsWith("ItemPickerMenu")) {
             return;
         }
-        List<Slot> slots = groupSlots(menu, player, group);
+        // Locked slots keep their contents and are left out of the sort entirely.
+        java.util.Set<Integer> locked = parseLocked(lockedIds);
+        Inventory inventory = player.getInventory();
+        List<Slot> slots = new ArrayList<>();
+        for (Slot slot : groupSlots(menu, player, group)) {
+            if (!locked.contains(lockId(slot, inventory))) {
+                slots.add(slot);
+            }
+        }
         if (slots.isEmpty()) {
             return;
         }
@@ -75,6 +90,30 @@ public final class Sorter {
             slot.set(target.get(slot));
         }
         menu.broadcastChanges();
+    }
+
+    /**
+     * The id a slot is locked under. Player slots use their index in the player's inventory, which is the same on
+     * every screen. Container slots use their index in the menu.
+     */
+    public static int lockId(Slot slot, Inventory inventory) {
+        return slot.container == inventory ? slot.getContainerSlot() : slot.index;
+    }
+
+    /** Parses the comma-separated locked ids sent with a sort request. */
+    static java.util.Set<Integer> parseLocked(String ids) {
+        java.util.Set<Integer> out = new java.util.HashSet<>();
+        if (ids == null || ids.isEmpty()) {
+            return out;
+        }
+        for (String part : ids.split(",")) {
+            try {
+                out.add(Integer.parseInt(part.trim()));
+            } catch (NumberFormatException e) {
+                // Ignore anything that is not an id.
+            }
+        }
+        return out;
     }
 
     /** The slots that belong to a group, in the menu's own order. */

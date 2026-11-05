@@ -27,8 +27,8 @@ public final class ForgeBarelySorts {
                 .add();
 
         Platform.init(FMLPaths.CONFIGDIR::get,
-                (containerId, group, method, key) -> channel.send(
-                        new ForgeSortMessage(containerId, group, method, key), PacketDistributor.SERVER.noArg()));
+                (containerId, group, method, key, lockedIds) -> channel.send(
+                        new ForgeSortMessage(containerId, group, method, key, lockedIds), PacketDistributor.SERVER.noArg()));
         Platform.setGuiOrigin(new Platform.GuiOrigin() {
             @Override
             public int left(AbstractContainerScreen<?> screen) {

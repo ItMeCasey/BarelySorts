@@ -18,9 +18,9 @@ public final class FabricBarelySorts implements ModInitializer {
         PayloadTypeRegistry.playC2S().register(FabricSortPayload.ID, FabricSortPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(FabricSortPayload.ID, (payload, context) ->
                 context.server().execute(() -> Sorter.sortGroup(context.player(), payload.containerId(),
-                        payload.group(), payload.method(), payload.key())));
+                        payload.group(), payload.method(), payload.key(), payload.lockedIds())));
 
-        Platform.init(() -> FabricLoader.getInstance().getConfigDir(), (containerId, group, method, key) -> {
+        Platform.init(() -> FabricLoader.getInstance().getConfigDir(), (containerId, group, method, key, lockedIds) -> {
         });
 
         ServerTickEvents.END_SERVER_TICK.register(server -> {

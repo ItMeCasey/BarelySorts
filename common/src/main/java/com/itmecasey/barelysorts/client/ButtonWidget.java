@@ -10,17 +10,15 @@ public final class ButtonWidget {
     private static final int FACE = 0xFF1A1830;
     private static final int HOVER_FACE = 0xFF2E2A46;
     private static final int ICON = 0xFFF2B33D;
-    private static final int LOCKED_ICON = 0xFF6F6A8A;
 
     private ButtonWidget() {
     }
 
-    public static void drawSort(GuiGraphics g, int x, int y, boolean hovered, boolean locked) {
+    public static void drawSort(GuiGraphics g, int x, int y, boolean hovered) {
         frame(g, x, y, hovered);
-        int color = locked ? LOCKED_ICON : ICON;
         int[] widths = {6, 4, 2};
         for (int i = 0; i < widths.length; i++) {
-            g.fill(x + 1, y + 1 + i * 2, x + 1 + widths[i], y + 2 + i * 2, color);
+            g.fill(x + 1, y + 1 + i * 2, x + 1 + widths[i], y + 2 + i * 2, ICON);
         }
     }
 

@@ -11,7 +11,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 /** Client asks the server to sort one group of the open container. */
-public record NeoForgeSortPayload(int containerId, String group, String method, String key)
+public record NeoForgeSortPayload(int containerId, String group, String method, String key, String lockedIds)
         implements CustomPacketPayload {
     public static final Type<NeoForgeSortPayload> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(BarelySorts.MODID, "sort"));
@@ -21,6 +21,7 @@ public record NeoForgeSortPayload(int containerId, String group, String method, 
             ByteBufCodecs.STRING_UTF8, NeoForgeSortPayload::group,
             ByteBufCodecs.STRING_UTF8, NeoForgeSortPayload::method,
             ByteBufCodecs.STRING_UTF8, NeoForgeSortPayload::key,
+            ByteBufCodecs.STRING_UTF8, NeoForgeSortPayload::lockedIds,
             NeoForgeSortPayload::new);
 
     @Override
@@ -31,7 +32,8 @@ public record NeoForgeSortPayload(int containerId, String group, String method, 
     public static void handle(NeoForgeSortPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (context.player() instanceof ServerPlayer player) {
-                Sorter.sortGroup(player, payload.containerId(), payload.group(), payload.method(), payload.key());
+                Sorter.sortGroup(player, payload.containerId(), payload.group(), payload.method(), payload.key(),
+                        payload.lockedIds());
             }
         });
     }

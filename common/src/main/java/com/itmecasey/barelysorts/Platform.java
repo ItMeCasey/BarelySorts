@@ -12,7 +12,7 @@ import java.util.function.Supplier;
 public final class Platform {
     /** Sends a sort request to the server. Set by the client side of each loader layer. */
     public interface SortSender {
-        void send(int containerId, String group, String method, String key);
+        void send(int containerId, String group, String method, String key, String lockedIds);
     }
 
     /**
@@ -27,7 +27,7 @@ public final class Platform {
 
     private static Supplier<Path> configDir = () -> Path.of("config");
     private static GuiOrigin guiOrigin;
-    private static SortSender sortSender = (containerId, group, method, key) -> {
+    private static SortSender sortSender = (containerId, group, method, key, lockedIds) -> {
     };
 
     private Platform() {
@@ -55,7 +55,7 @@ public final class Platform {
         return configDir.get();
     }
 
-    public static void sendSort(int containerId, String group, String method, String key) {
-        sortSender.send(containerId, group, method, key);
+    public static void sendSort(int containerId, String group, String method, String key, String lockedIds) {
+        sortSender.send(containerId, group, method, key, lockedIds);
     }
 }

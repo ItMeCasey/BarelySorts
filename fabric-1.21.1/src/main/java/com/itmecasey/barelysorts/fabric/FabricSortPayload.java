@@ -8,7 +8,8 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
 /** Client asks the server to sort one group of the open container. */
-public record FabricSortPayload(int containerId, String group, String method, String key) implements CustomPacketPayload {
+public record FabricSortPayload(int containerId, String group, String method, String key, String lockedIds)
+        implements CustomPacketPayload {
     public static final Type<FabricSortPayload> ID =
             new Type<>(ResourceLocation.fromNamespaceAndPath(BarelySorts.MODID, "sort"));
 
@@ -17,6 +18,7 @@ public record FabricSortPayload(int containerId, String group, String method, St
             ByteBufCodecs.STRING_UTF8, FabricSortPayload::group,
             ByteBufCodecs.STRING_UTF8, FabricSortPayload::method,
             ByteBufCodecs.STRING_UTF8, FabricSortPayload::key,
+            ByteBufCodecs.STRING_UTF8, FabricSortPayload::lockedIds,
             FabricSortPayload::new);
 
     @Override

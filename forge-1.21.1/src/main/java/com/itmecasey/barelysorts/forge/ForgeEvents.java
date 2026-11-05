@@ -2,7 +2,9 @@ package com.itmecasey.barelysorts.forge;
 
 import com.itmecasey.barelysorts.Autofill;
 import com.itmecasey.barelysorts.BarelySorts;
+import com.itmecasey.barelysorts.client.AutofillSync;
 import com.itmecasey.barelysorts.client.ScreenActions;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
@@ -49,6 +51,12 @@ public final class ForgeEvents {
                     && ScreenActions.mouseButton(screen, event.getMouseX(), event.getMouseY(), event.getButton())) {
                 event.setCanceled(true);
             }
+        }
+
+        /** Tells the server the saved autofill setting on every join. */
+        @SubscribeEvent
+        public static void onLogin(ClientPlayerNetworkEvent.LoggingIn event) {
+            AutofillSync.sendSaved();
         }
 
         @SubscribeEvent
