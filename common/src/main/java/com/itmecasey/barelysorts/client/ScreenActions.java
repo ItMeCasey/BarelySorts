@@ -47,6 +47,8 @@ public final class ScreenActions {
     /** Locked slots keep this faint outline when the group is not being edited. */
     private static final int LOCKED_FAINT = 0x66F2B33D;
     private static final int LOCKED_FAINT_TINT = 0x18F2B33D;
+    /** How far overlays are lifted in front of the item stacks. */
+    private static final float OVERLAY_Z = 400f;
     private static final int RED = 0xFFE5484D;
     private static final int RED_TINT = 0x55E5484D;
     private static final int DIALOG_WIDTH = 178;
@@ -84,6 +86,9 @@ public final class ScreenActions {
     public static void render(AbstractContainerScreen<?> screen, GuiGraphics graphics, double mouseX, double mouseY) {
         updateMarking(screen);
 
+        // Everything below is drawn above the item stacks, which the game draws higher than plain fills.
+        graphics.pose().pushPose();
+        graphics.pose().translate(0, 0, OVERLAY_Z);
         String tooltip = null;
         for (Group group : Group.of(screen)) {
             boolean sortHover = ButtonWidget.inside(mouseX, mouseY, group.sortButtonX(), group.sortButtonY());
@@ -109,6 +114,7 @@ public final class ScreenActions {
         if (confirmScreen == screen) {
             renderConfirm(graphics, screen, mouseX, mouseY);
         }
+        graphics.pose().popPose();
         // Tooltips are for the two buttons only. The popup rows have none.
         if (tooltip != null && confirmScreen != screen) {
             graphics.renderTooltip(Minecraft.getInstance().font, Component.literal(tooltip),
@@ -471,7 +477,13 @@ public final class ScreenActions {
     /** Says how to finish slot selection, just above the group. */
     private static void drawSelectionHint(GuiGraphics g, Group group) {
         Font font = Minecraft.getInstance().font;
-        g.drawString(font, small("Click slots to lock. Esc to finish."), group.left(), group.top() - 12, GOLD, false);
+        Component text = small("Click slots to lock. Esc to finish.");
+        int x = group.left();
+        int y = group.top() - 14;
+        int width = font.width(text);
+        // A dark plate behind the text keeps it readable over the inventory art.
+        g.fill(x - 3, y - 2, x + width + 3, y + font.lineHeight + 2, FACE);
+        g.drawString(font, text, x, y, GOLD, false);
     }
 
     private static Component small(String text) {
