@@ -38,4 +38,5 @@ Spend: none
 ## Documentation and branding
 - [x] README, CHANGELOG, LICENSE and CurseForge description match the tested state (w:1)
 - [x] Branding: icon, banners, CurseForge description and listing kit (w:2)
+- [x] Compatibility standard: BEI, REI, JEI, EMI, SMWTI and Jade not applicable, no content added (docs/COMPATIBILITY.md) (w:1)
 - [x] Wiki (9 pages) written, deployed and checked live at itmecasey.com/wiki/barelysorts (w:2)

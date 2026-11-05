@@ -33,6 +33,11 @@ Bug reports for any of them are welcome.
 - Middle-click and R sort the group under the mouse. R may conflict with the recipe book key in some screens.
 - Vanilla crafting grids and machines, creative screens and Applied Energistics 2 screens are deliberately left alone.
 
+## Other mods
+
+BarelySorts adds no items, blocks, recipes or entities, so it has no BEI, REI, JEI, EMI, SMWTI or Jade integration. See
+[docs/COMPATIBILITY.md](docs/COMPATIBILITY.md).
+
 ## License
 
 MIT. See [LICENSE](LICENSE).

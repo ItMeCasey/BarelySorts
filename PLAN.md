@@ -68,3 +68,8 @@ Fabric is the third layer for 1.21.1 (`fabric-1.21.1/`, Loom 1.9.2, Fabric API 0
 dedicated server needs a JDK 21 runtime: on JDK 25 the Mixin in fabric-gametest-api fails with a ClassNotFoundException
 for java.lang.System. Run it with `JAVA_HOME` pointing at a JDK 21 install. Fabric reads `leftPos`/`topPos` through
 `barelysorts.accesswidener`; NeoForge and Forge use `getGuiLeft()`/`getGuiTop()` through `Platform.GuiOrigin`.
+
+## Viewer and info mod integrations
+
+Not applicable. BarelySorts adds no items, blocks, fluids, recipes or entities, so BEI, REI, JEI, EMI, SMWTI and Jade have
+nothing to show. See [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md).
