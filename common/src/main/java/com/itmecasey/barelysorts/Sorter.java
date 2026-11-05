@@ -25,6 +25,7 @@ public final class Sorter {
     public static final String GROUP_PLAYER = "player";
     public static final String GROUP_CONTAINER = "container";
     public static final String AUTOFILL = "autofill";
+    public static final String DELETE = "delete";
 
     /** Player main inventory is slots 9 to 35 of the player's Inventory. */
     private static final int MAIN_START = 9;
@@ -35,6 +36,11 @@ public final class Sorter {
 
     public static void sortGroup(ServerPlayer player, int containerId, String group, String methodName, String keyName,
                                  String lockedIds) {
+        // Not a sort: the client sends the slots to delete under this group name, as menu slot indexes.
+        if (DELETE.equals(group)) {
+            deleteSlots(player, containerId, lockedIds);
+            return;
+        }
         // Not a sort: the client sends its autofill setting ("true" or "false") under this group name.
         if (AUTOFILL.equals(group)) {
             Autofill.setReplaceAtOne(player.getUUID(), "true".equals(methodName));
@@ -88,6 +94,27 @@ public final class Sorter {
         }
         for (Slot slot : slots) {
             slot.set(target.get(slot));
+        }
+        menu.broadcastChanges();
+    }
+
+    /**
+     * Empties the listed menu slots. The client has already asked the player to confirm. Result slots and the creative
+     * picker are never touched.
+     */
+    static void deleteSlots(ServerPlayer player, int containerId, String menuSlotIds) {
+        AbstractContainerMenu menu = player.containerMenu;
+        if (menu.containerId != containerId || menu.getClass().getName().endsWith("ItemPickerMenu")) {
+            return;
+        }
+        for (int index : parseLocked(menuSlotIds)) {
+            if (index < 0 || index >= menu.slots.size()) {
+                continue;
+            }
+            Slot slot = menu.getSlot(index);
+            if (!(slot instanceof ResultSlot) && slot.hasItem()) {
+                slot.set(ItemStack.EMPTY);
+            }
         }
         menu.broadcastChanges();
     }

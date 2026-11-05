@@ -3,6 +3,7 @@ package com.itmecasey.barelysorts.client;
 import com.itmecasey.barelysorts.GroupSettings;
 import com.itmecasey.barelysorts.Platform;
 import com.itmecasey.barelysorts.Sorter;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -11,14 +12,19 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
- * What the buttons, the settings popup, slot locking and the hotkeys do on a container screen. The loader layers
- * forward their screen events here, so the behavior is written once. Everything is drawn and hit-tested by hand.
+ * What the buttons, the settings popup, slot locking, delete marking and the hotkeys do on a container screen. The
+ * loader layers forward their screen events here, so the behavior is written once. Everything is drawn and hit-tested
+ * by hand.
  */
 public final class ScreenActions {
     private static final int LEFT_BUTTON = 0;
@@ -41,6 +47,13 @@ public final class ScreenActions {
     /** Locked slots keep this faint outline when the group is not being edited. */
     private static final int LOCKED_FAINT = 0x66F2B33D;
     private static final int LOCKED_FAINT_TINT = 0x18F2B33D;
+    private static final int RED = 0xFFE5484D;
+    private static final int RED_TINT = 0x55E5484D;
+    private static final int DIALOG_WIDTH = 178;
+    private static final int DIALOG_COLUMNS = 9;
+    private static final int DIALOG_MAX_SHOWN = 27;
+    private static final int BUTTON_WIDTH = 56;
+    private static final int BUTTON_HEIGHT = 14;
 
     /** Row indexes in the popup. The player group has one more row, for the tool swap setting. */
     private static final int ROW_METHOD = 0;
@@ -56,10 +69,21 @@ public final class ScreenActions {
     private static AbstractContainerScreen<?> selectScreen;
     private static String selectKey;
 
+    /** Holding X marks slots for deletion. Releasing X asks for confirmation. */
+    private static boolean xWasDown;
+    private static AbstractContainerScreen<?> markScreen;
+    private static final Set<Integer> marked = new HashSet<>();
+
+    /** The delete confirmation is open for one screen, with these menu slots. */
+    private static AbstractContainerScreen<?> confirmScreen;
+    private static List<Integer> confirmSlots = List.of();
+
     private ScreenActions() {
     }
 
     public static void render(AbstractContainerScreen<?> screen, GuiGraphics graphics, double mouseX, double mouseY) {
+        updateMarking(screen);
+
         String tooltip = null;
         for (Group group : Group.of(screen)) {
             boolean sortHover = ButtonWidget.inside(mouseX, mouseY, group.sortButtonX(), group.sortButtonY());
@@ -77,12 +101,16 @@ public final class ScreenActions {
             } else {
                 drawLocked(graphics, screen, group, LOCKED_FAINT_TINT, LOCKED_FAINT);
             }
+            drawMarked(graphics, screen, group);
             if (isPopupOpen(screen, group)) {
                 renderPopup(graphics, group, mouseX, mouseY);
             }
         }
+        if (confirmScreen == screen) {
+            renderConfirm(graphics, screen, mouseX, mouseY);
+        }
         // Tooltips are for the two buttons only. The popup rows have none.
-        if (tooltip != null) {
+        if (tooltip != null && confirmScreen != screen) {
             graphics.renderTooltip(Minecraft.getInstance().font, Component.literal(tooltip),
                     (int) mouseX, (int) mouseY);
         }
@@ -90,6 +118,20 @@ public final class ScreenActions {
 
     /** Returns true when the click was used, so the loader can cancel it. */
     public static boolean mouseButton(AbstractContainerScreen<?> screen, double mouseX, double mouseY, int button) {
+        if (confirmScreen == screen) {
+            if (button == LEFT_BUTTON) {
+                int left = confirmLeft(screen);
+                int buttonY = confirmButtonY(screen);
+                if (inside(mouseX, mouseY, left + 12, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT)) {
+                    deleteConfirmed();
+                } else if (inside(mouseX, mouseY, left + DIALOG_WIDTH - 12 - BUTTON_WIDTH, buttonY,
+                        BUTTON_WIDTH, BUTTON_HEIGHT)) {
+                    closeConfirm();
+                }
+            }
+            // The dialog is modal: clicks outside it do nothing until it is answered.
+            return true;
+        }
         if (popupScreen == screen && button == LEFT_BUTTON) {
             for (Group group : Group.of(screen)) {
                 if (isPopupOpen(screen, group) && insidePopup(group, mouseX, mouseY)) {
@@ -119,6 +161,15 @@ public final class ScreenActions {
                 }
             }
         }
+        if (markScreen == screen && isXDown() && button == LEFT_BUTTON) {
+            for (Group group : Group.of(screen)) {
+                Slot slot = slotAt(screen, group, mouseX, mouseY);
+                if (slot != null) {
+                    toggleMark(slot.index);
+                    return true;
+                }
+            }
+        }
         for (Group group : Group.of(screen)) {
             if (button == LEFT_BUTTON
                     && ButtonWidget.inside(mouseX, mouseY, group.menuButtonX(), group.menuButtonY())) {
@@ -142,11 +193,15 @@ public final class ScreenActions {
     }
 
     /**
-     * Escape closes the popup or ends slot selection. R sorts the group under the mouse; away from a group it does
-     * nothing, so the recipe book key keeps working. Returns true when the key was used.
+     * Escape closes the delete dialog, the popup, or slot selection. R sorts the group under the mouse; away from a
+     * group it does nothing, so the recipe book key keeps working. Returns true when the key was used.
      */
     public static boolean key(AbstractContainerScreen<?> screen, int keyCode) {
         if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
+            if (confirmScreen == screen) {
+                closeConfirm();
+                return true;
+            }
             if (selectScreen == screen) {
                 stopSelecting();
                 return true;
@@ -176,6 +231,159 @@ public final class ScreenActions {
         }
         return false;
     }
+
+    // ---- Delete marking: hold X, click slots to mark them red, release X to confirm ----
+
+    private static boolean isXDown() {
+        Minecraft minecraft = Minecraft.getInstance();
+        return InputConstants.isKeyDown(minecraft.getWindow().getWindow(), GLFW.GLFW_KEY_X);
+    }
+
+    /** Starts a new mark when X goes down, and opens the confirmation when it comes back up. */
+    private static void updateMarking(AbstractContainerScreen<?> screen) {
+        boolean xDown = isXDown();
+        if (xDown && !xWasDown) {
+            marked.clear();
+            markScreen = screen;
+        } else if (!xDown && xWasDown && markScreen == screen) {
+            markScreen = null;
+            if (!marked.isEmpty() && confirmScreen == null) {
+                openConfirm(screen);
+            }
+            marked.clear();
+        }
+        xWasDown = xDown;
+    }
+
+    private static void toggleMark(int menuSlot) {
+        if (!marked.remove(menuSlot)) {
+            marked.add(menuSlot);
+        }
+    }
+
+    /** Outlines marked slots of the group in red. */
+    private static void drawMarked(GuiGraphics g, AbstractContainerScreen<?> screen, Group group) {
+        if (marked.isEmpty()) {
+            return;
+        }
+        int guiLeft = Platform.guiOrigin().left(screen);
+        int guiTop = Platform.guiOrigin().top(screen);
+        for (Slot slot : group.slots()) {
+            if (!marked.contains(slot.index)) {
+                continue;
+            }
+            int x = guiLeft + slot.x;
+            int y = guiTop + slot.y;
+            g.fill(x, y, x + 16, y + 16, RED_TINT);
+            g.fill(x - 1, y - 1, x + 17, y, RED);
+            g.fill(x - 1, y + 16, x + 17, y + 17, RED);
+            g.fill(x - 1, y, x, y + 16, RED);
+            g.fill(x + 16, y, x + 17, y + 16, RED);
+        }
+    }
+
+    private static void openConfirm(AbstractContainerScreen<?> screen) {
+        List<Integer> withItems = new ArrayList<>();
+        for (int index : marked) {
+            if (index >= 0 && index < screen.getMenu().slots.size() && screen.getMenu().getSlot(index).hasItem()) {
+                withItems.add(index);
+            }
+        }
+        if (withItems.isEmpty()) {
+            return;
+        }
+        confirmScreen = screen;
+        confirmSlots = List.copyOf(withItems);
+    }
+
+    private static void deleteConfirmed() {
+        if (confirmScreen != null) {
+            Platform.sendSort(confirmScreen.getMenu().containerId, Sorter.DELETE, "",
+                    "", confirmSlots.stream().map(String::valueOf).collect(Collectors.joining(",")));
+        }
+        closeConfirm();
+    }
+
+    private static void closeConfirm() {
+        confirmScreen = null;
+        confirmSlots = List.of();
+    }
+
+    /** The dialog shows up to DIALOG_MAX_SHOWN stacks, DIALOG_COLUMNS to a row. */
+    private static int shownStacks() {
+        return Math.min(confirmSlots.size(), DIALOG_MAX_SHOWN);
+    }
+
+    private static int itemRows() {
+        return Math.max(1, (shownStacks() + DIALOG_COLUMNS - 1) / DIALOG_COLUMNS);
+    }
+
+    private static boolean overflowing() {
+        return confirmSlots.size() > DIALOG_MAX_SHOWN;
+    }
+
+    /** Title, item rows, an optional "+N more" line, then the warning and the buttons. */
+    private static int confirmHeight() {
+        return 20 + itemRows() * 18 + (overflowing() ? 10 : 0) + 40;
+    }
+
+    private static int confirmLeft(AbstractContainerScreen<?> screen) {
+        return screen.width / 2 - DIALOG_WIDTH / 2;
+    }
+
+    private static int confirmTop(AbstractContainerScreen<?> screen) {
+        return screen.height / 2 - confirmHeight() / 2;
+    }
+
+    private static int confirmButtonY(AbstractContainerScreen<?> screen) {
+        return confirmTop(screen) + confirmHeight() - 22;
+    }
+
+    private static void renderConfirm(GuiGraphics g, AbstractContainerScreen<?> screen, double mouseX, double mouseY) {
+        int left = confirmLeft(screen);
+        int top = confirmTop(screen);
+        int height = confirmHeight();
+        Font font = Minecraft.getInstance().font;
+        int count = confirmSlots.size();
+
+        g.fill(left - 1, top - 1, left + DIALOG_WIDTH + 1, top + height + 1, FRAME);
+        g.fill(left, top, left + DIALOG_WIDTH, top + height, FACE);
+        g.drawCenteredString(font, small("Delete " + count + (count == 1 ? " stack?" : " stacks?")),
+                left + DIALOG_WIDTH / 2, top + 7, TEXT);
+
+        // The actual stacks, with their counts, so you can see exactly what goes.
+        int shown = shownStacks();
+        for (int i = 0; i < shown; i++) {
+            ItemStack stack = screen.getMenu().getSlot(confirmSlots.get(i)).getItem();
+            int x = left + 8 + (i % DIALOG_COLUMNS) * 18;
+            int y = top + 20 + (i / DIALOG_COLUMNS) * 18;
+            g.renderItem(stack, x, y);
+            g.renderItemDecorations(font, stack, x, y);
+        }
+        if (overflowing()) {
+            g.drawCenteredString(font, small("+" + (count - shown) + " more"), left + DIALOG_WIDTH / 2,
+                    top + 20 + itemRows() * 18 + 2, TEXT);
+        }
+        g.drawCenteredString(font, small("This cannot be undone."), left + DIALOG_WIDTH / 2, top + height - 33, TEXT);
+
+        int buttonY = top + height - 22;
+        drawButton(g, font, left + 12, buttonY, "Delete", RED, mouseX, mouseY);
+        drawButton(g, font, left + DIALOG_WIDTH - 12 - BUTTON_WIDTH, buttonY, "Cancel", GOLD, mouseX, mouseY);
+    }
+
+    private static void drawButton(GuiGraphics g, Font font, int x, int y, String label, int color,
+                                   double mouseX, double mouseY) {
+        boolean hover = inside(mouseX, mouseY, x, y, BUTTON_WIDTH, BUTTON_HEIGHT);
+        g.fill(x - 1, y - 1, x + BUTTON_WIDTH + 1, y + BUTTON_HEIGHT + 1, color);
+        g.fill(x, y, x + BUTTON_WIDTH, y + BUTTON_HEIGHT, hover ? HOVER_FACE : FACE);
+        g.drawCenteredString(font, small(label), x + BUTTON_WIDTH / 2, y + 3, color);
+    }
+
+    private static boolean inside(double mouseX, double mouseY, int x, int y, int width, int height) {
+        return mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + height;
+    }
+
+    // ---- Sorting, settings, and slot locking ----
 
     private static void sort(AbstractContainerScreen<?> screen, Group group) {
         GroupSettings settings = ClientSettings.get(group.settingsKey());
