@@ -1,0 +1,42 @@
+package com.itmecasey.barelysorts.client;
+
+import net.minecraft.client.gui.GuiGraphics;
+
+/** Two small icon buttons drawn by hand: a sort glyph (bars of falling length) and a hamburger (three bars). */
+public final class ButtonWidget {
+    public static final int SIZE = 12;
+
+    private static final int FRAME = 0xFF2E2A46;
+    private static final int FACE = 0xFF1A1830;
+    private static final int HOVER_FACE = 0xFF2E2A46;
+    private static final int ICON = 0xFFF2B33D;
+    private static final int LOCKED_ICON = 0xFF6F6A8A;
+
+    private ButtonWidget() {
+    }
+
+    public static void drawSort(GuiGraphics g, int x, int y, boolean hovered, boolean locked) {
+        frame(g, x, y, hovered);
+        int color = locked ? LOCKED_ICON : ICON;
+        int[] widths = {8, 6, 4};
+        for (int i = 0; i < widths.length; i++) {
+            g.fill(x + 2, y + 2 + i * 3, x + 2 + widths[i], y + 3 + i * 3, color);
+        }
+    }
+
+    public static void drawMenu(GuiGraphics g, int x, int y, boolean hovered) {
+        frame(g, x, y, hovered);
+        for (int i = 0; i < 3; i++) {
+            g.fill(x + 2, y + 2 + i * 3, x + SIZE - 2, y + 3 + i * 3, ICON);
+        }
+    }
+
+    private static void frame(GuiGraphics g, int x, int y, boolean hovered) {
+        g.fill(x - 1, y - 1, x + SIZE + 1, y + SIZE + 1, FRAME);
+        g.fill(x, y, x + SIZE, y + SIZE, hovered ? HOVER_FACE : FACE);
+    }
+
+    public static boolean inside(double mouseX, double mouseY, int x, int y) {
+        return mouseX >= x && mouseX < x + SIZE && mouseY >= y && mouseY < y + SIZE;
+    }
+}
