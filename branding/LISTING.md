@@ -6,7 +6,7 @@ Everything you need to fill in the CurseForge project form. Files are in `brandi
 
 | Field | CurseForge |
 |---|---|
-| Project ID | not created yet |
+| Project ID | 1784568 |
 | Name | BarelySorts |
 | Slug / URL | `barelysorts` |
 | Icon / logo | `icon/icon_512.png` (square, at least 400x400) |
@@ -46,6 +46,6 @@ The CurseForge description is in [`curseforge/DESCRIPTION.md`](../curseforge/DES
 ## Checklist
 
 1. Push `branding/` to GitHub so the description images load.
-2. Create the CurseForge project, with `icon_512.png` as the logo, then record the project id above. New projects are reviewed before they go live.
+2. Create the CurseForge project, with `icon_512.png` as the logo (project id 1784568 is recorded above). New projects are reviewed before they go live.
 3. Set `banners/social.png` as the GitHub social preview.
 4. Add `icon/barelysorts_logo.png` to the jar as the mod list logo (`logoFile` in the mod metadata, file in `src/main/resources/`).

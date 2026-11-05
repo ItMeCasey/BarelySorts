@@ -29,9 +29,9 @@ Spend: none
 - [ ] Headless self test on each target (w:3)
 - [x] GitHub repository (public, ItMeCasey/BarelySorts) (w:2)
 - [ ] GitHub CI workflow (w:2)
-- [ ] CurseForge project and first release (w:2)
+- [~] CurseForge project created (id 1784568), first release not yet (w:2)
 
 ## Documentation and branding
 - [ ] README, LICENSE, PROJECT_STATUS kept current (w:1)
 - [x] Branding: icon, banners, CurseForge description and listing kit (w:2)
-- [ ] Wiki page (w:2)
+- [x] Wiki (9 pages) written, deployed and checked live at itmecasey.com/wiki/barelysorts (w:2)
