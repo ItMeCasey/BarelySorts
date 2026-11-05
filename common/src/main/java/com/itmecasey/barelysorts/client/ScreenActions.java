@@ -4,12 +4,16 @@ import com.itmecasey.barelysorts.GroupSettings;
 import com.itmecasey.barelysorts.Platform;
 import com.itmecasey.barelysorts.Sorter;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.Slot;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -20,16 +24,23 @@ public final class ScreenActions {
     private static final int LEFT_BUTTON = 0;
     private static final int MIDDLE_BUTTON = 2;
 
-    private static final int POPUP_WIDTH = 104;
+    /** Our own pixel font (common/src/main/resources/assets/barelysorts/font), used for popup and hint text. */
+    private static final ResourceLocation SMALL_FONT =
+            ResourceLocation.fromNamespaceAndPath("barelysorts", "small");
+
     private static final int ROW_HEIGHT = 12;
+    private static final int ROW_PADDING = 6;
+    private static final int MIN_POPUP_WIDTH = 80;
     private static final int EDGE = 2;
-    private static final float TEXT_SCALE = 0.8f;
     private static final int FRAME = 0xFF2E2A46;
     private static final int FACE = 0xFF1A1830;
     private static final int HOVER_FACE = 0xFF2E2A46;
     private static final int TEXT = 0xFFF4F2FF;
     private static final int GOLD = 0xFFF2B33D;
     private static final int GOLD_TINT = 0x55F2B33D;
+    /** Locked slots keep this faint outline when the group is not being edited. */
+    private static final int LOCKED_FAINT = 0x66F2B33D;
+    private static final int LOCKED_FAINT_TINT = 0x18F2B33D;
 
     /** Row indexes in the popup. The player group has one more row, for the tool swap setting. */
     private static final int ROW_METHOD = 0;
@@ -60,11 +71,14 @@ public final class ScreenActions {
             } else if (menuHover) {
                 tooltip = "Sort settings";
             }
+            if (isSelecting(screen, group)) {
+                drawLocked(graphics, screen, group, GOLD_TINT, GOLD);
+                drawSelectionHint(graphics, group);
+            } else {
+                drawLocked(graphics, screen, group, LOCKED_FAINT_TINT, LOCKED_FAINT);
+            }
             if (isPopupOpen(screen, group)) {
                 renderPopup(graphics, group, mouseX, mouseY);
-            }
-            if (isSelecting(screen, group)) {
-                renderSelection(graphics, screen, group);
             }
         }
         // Tooltips are for the two buttons only. The popup rows have none.
@@ -226,8 +240,8 @@ public final class ScreenActions {
         ClientSettings.put(group.settingsKey(), settings.toggleSlot(Sorter.lockId(slot, inventory)));
     }
 
-    /** Outlines the group's locked slots in gold, and says how to finish. */
-    private static void renderSelection(GuiGraphics g, AbstractContainerScreen<?> screen, Group group) {
+    /** Outlines every locked slot of the group with the given colors. */
+    private static void drawLocked(GuiGraphics g, AbstractContainerScreen<?> screen, Group group, int tint, int edge) {
         GroupSettings settings = ClientSettings.get(group.settingsKey());
         var inventory = Minecraft.getInstance().player.getInventory();
         int guiLeft = Platform.guiOrigin().left(screen);
@@ -238,22 +252,36 @@ public final class ScreenActions {
             }
             int x = guiLeft + slot.x;
             int y = guiTop + slot.y;
-            g.fill(x, y, x + 16, y + 16, GOLD_TINT);
-            g.fill(x - 1, y - 1, x + 17, y, GOLD);
-            g.fill(x - 1, y + 16, x + 17, y + 17, GOLD);
-            g.fill(x - 1, y, x, y + 16, GOLD);
-            g.fill(x + 16, y, x + 17, y + 16, GOLD);
+            g.fill(x, y, x + 16, y + 16, tint);
+            g.fill(x - 1, y - 1, x + 17, y, edge);
+            g.fill(x - 1, y + 16, x + 17, y + 17, edge);
+            g.fill(x - 1, y, x, y + 16, edge);
+            g.fill(x + 16, y, x + 17, y + 16, edge);
         }
-        g.pose().pushPose();
-        g.pose().translate(group.left(), group.top() - 22, 0);
-        g.pose().scale(TEXT_SCALE, TEXT_SCALE, 1f);
-        g.drawString(Minecraft.getInstance().font, "Click slots to lock them. Esc to finish.", 0, 0, GOLD, false);
-        g.pose().popPose();
+    }
+
+    /** Says how to finish slot selection, just above the group. */
+    private static void drawSelectionHint(GuiGraphics g, Group group) {
+        Font font = Minecraft.getInstance().font;
+        g.drawString(font, small("Click slots to lock. Esc to finish."), group.left(), group.top() - 12, GOLD, false);
+    }
+
+    private static Component small(String text) {
+        return Component.literal(text).withStyle(Style.EMPTY.withFont(SMALL_FONT));
     }
 
     /** The popup hangs below the settings button, lined up with its right edge, and stays on screen. */
+    private static int popupWidth(Group group) {
+        Font font = Minecraft.getInstance().font;
+        int widest = 0;
+        for (String label : labels(group)) {
+            widest = Math.max(widest, font.width(small(label)));
+        }
+        return Math.max(MIN_POPUP_WIDTH, widest + ROW_PADDING * 2);
+    }
+
     private static int popupLeft(Group group) {
-        int left = group.menuButtonX() + ButtonWidget.SIZE - POPUP_WIDTH;
+        int left = group.menuButtonX() + ButtonWidget.SIZE - popupWidth(group);
         return Math.max(EDGE, left);
     }
 
@@ -273,36 +301,39 @@ public final class ScreenActions {
     private static boolean insidePopup(Group group, double mouseX, double mouseY) {
         int left = popupLeft(group);
         int top = popupTop(group);
-        return mouseX >= left && mouseX < left + POPUP_WIDTH && mouseY >= top && mouseY < top + popupHeight(group);
+        return mouseX >= left && mouseX < left + popupWidth(group)
+                && mouseY >= top && mouseY < top + popupHeight(group);
     }
 
     private static void renderPopup(GuiGraphics g, Group group, double mouseX, double mouseY) {
         int left = popupLeft(group);
         int top = popupTop(group);
+        int width = popupWidth(group);
+        List<String> labels = labels(group);
+        Font font = Minecraft.getInstance().font;
+
+        g.fill(left - 1, top - 1, left + width + 1, top + popupHeight(group) + 1, FRAME);
+        g.fill(left, top, left + width, top + popupHeight(group), FACE);
+
+        for (int row = 0; row < labels.size(); row++) {
+            int rowTop = top + 2 + row * ROW_HEIGHT;
+            boolean hover = mouseX >= left && mouseX < left + width
+                    && mouseY >= rowTop && mouseY < rowTop + ROW_HEIGHT;
+            if (hover) {
+                g.fill(left + 1, rowTop, left + width - 1, rowTop + ROW_HEIGHT, HOVER_FACE);
+            }
+            g.drawString(font, small(labels.get(row)), left + ROW_PADDING, rowTop + 2, TEXT, false);
+        }
+    }
+
+    private static List<String> labels(Group group) {
         GroupSettings settings = ClientSettings.get(group.settingsKey());
-        List<String> labels = new java.util.ArrayList<>(List.of(
+        List<String> labels = new ArrayList<>(List.of(
                 methodLabel(settings), keyLabel(settings), slotsLabel(settings)));
         if (rowCount(group) == 4) {
             labels.add(toolsLabel(settings));
         }
-
-        g.fill(left - 1, top - 1, left + POPUP_WIDTH + 1, top + popupHeight(group) + 1, FRAME);
-        g.fill(left, top, left + POPUP_WIDTH, top + popupHeight(group), FACE);
-
-        var font = Minecraft.getInstance().font;
-        for (int row = 0; row < labels.size(); row++) {
-            int rowTop = top + 2 + row * ROW_HEIGHT;
-            boolean hover = mouseX >= left && mouseX < left + POPUP_WIDTH
-                    && mouseY >= rowTop && mouseY < rowTop + ROW_HEIGHT;
-            if (hover) {
-                g.fill(left + 1, rowTop, left + POPUP_WIDTH - 1, rowTop + ROW_HEIGHT, HOVER_FACE);
-            }
-            g.pose().pushPose();
-            g.pose().translate(left + 4, rowTop + 2, 0);
-            g.pose().scale(TEXT_SCALE, TEXT_SCALE, 1f);
-            g.drawString(font, labels.get(row), 0, 0, TEXT, false);
-            g.pose().popPose();
-        }
+        return labels;
     }
 
     private static void toggle(Group group, int row) {
@@ -322,11 +353,11 @@ public final class ScreenActions {
     }
 
     private static String methodLabel(GroupSettings settings) {
-        return "Sort method: " + (settings.method().name().equals("ROWS") ? "Rows" : "Columns");
+        return "Sort: " + (settings.method().name().equals("ROWS") ? "Rows" : "Columns");
     }
 
     private static String keyLabel(GroupSettings settings) {
-        return "Sort by: " + switch (settings.key()) {
+        return "By: " + switch (settings.key()) {
             case QUANTITY -> "Quantity";
             case NAME -> "Item name";
             case MOD -> "Mod name";
@@ -334,10 +365,10 @@ public final class ScreenActions {
     }
 
     private static String slotsLabel(GroupSettings settings) {
-        return "Locked slots: " + settings.lockedSlots().size() + " (choose)";
+        return "Locked: " + settings.lockedSlots().size() + " (choose)";
     }
 
     private static String toolsLabel(GroupSettings settings) {
-        return settings.replaceAtOne() ? "Tools: swap at 1 durability" : "Tools: swap when broken";
+        return settings.replaceAtOne() ? "Tools: at 1 durability" : "Tools: when broken";
     }
 }
