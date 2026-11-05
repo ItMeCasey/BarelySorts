@@ -33,7 +33,7 @@ Spend: none
 - [x] GitHub repository (public, ItMeCasey/BarelySorts) (w:2)
 - [x] GitHub CI workflow: build all layers, test, combine jars (w:2)
 - [x] Release workflow and CurseForge upload script (publish off by default) (w:2)
-- [~] CurseForge project created (id 1784568), first release not yet (w:2)
+- [x] CurseForge project created (id 1784568); 2026.11.1 released, all five files approved (w:2)
 
 ## Documentation and branding
 - [x] README, CHANGELOG, LICENSE and CurseForge description match the tested state (w:1)
