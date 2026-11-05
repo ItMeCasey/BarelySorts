@@ -23,7 +23,6 @@ sorts it, and a hamburger that opens its settings.
 ## Known gaps
 
 - Lock is enforced on the client only.
-- Moving the last hotbar item by hand also triggers autofill, because the two cannot be told apart yet.
 - Middle-click and R sort the group under the mouse. R may conflict with the recipe book key in some screens.
 
 ## License
