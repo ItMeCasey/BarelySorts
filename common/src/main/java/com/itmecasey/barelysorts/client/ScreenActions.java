@@ -94,6 +94,7 @@ public final class ScreenActions {
         // Everything below is drawn above the item stacks, which the game draws higher than plain fills.
         graphics.push();
         graphics.lift(OVERLAY_Z);
+        drawAllLocks(graphics, screen);
         String tooltip = null;
         for (Group group : Group.of(screen)) {
             boolean sortHover = ButtonWidget.inside(mouseX, mouseY, group.sortButtonX(), group.sortButtonY());
@@ -106,10 +107,7 @@ public final class ScreenActions {
                 tooltip = "Sort settings";
             }
             if (isSelecting(screen, group)) {
-                drawLocked(graphics, screen, group, GOLD_TINT, GOLD);
                 drawSelectionHint(graphics, group);
-            } else {
-                drawLocked(graphics, screen, group, LOCKED_FAINT_TINT, LOCKED_FAINT);
             }
             drawMarked(graphics, screen, group);
             if (isPopupOpen(screen, group)) {
@@ -560,16 +558,29 @@ public final class ScreenActions {
         }
     }
 
-    /** Outlines every locked slot of the group with the given colors. */
-    private static void drawLocked(Draw g, AbstractContainerScreen<?> screen, Group group, int tint, int edge) {
-        GroupSettings settings = ClientSettings.get(group.settingsKey());
+    /**
+     * Outlines every locked slot on the screen, on any screen: storage, the player inventory, workstations and the
+     * creative screen. Player locks apply everywhere. Container locks apply to the container they were set on. The
+     * slots of the group being edited are drawn in strong gold; the rest are faint.
+     */
+    private static void drawAllLocks(Draw g, AbstractContainerScreen<?> screen) {
         var inventory = Minecraft.getInstance().player.getInventory();
+        String containerKey = Group.containerKey(screen);
+        GroupSettings playerSettings = ClientSettings.get(Sorter.GROUP_PLAYER);
+        GroupSettings containerSettings = ClientSettings.get(containerKey);
         int guiLeft = Platform.guiOrigin().left(screen);
         int guiTop = Platform.guiOrigin().top(screen);
-        for (Slot slot : group.slots()) {
+        boolean selecting = selectScreen == screen;
+        for (Slot slot : screen.getMenu().slots) {
+            boolean playerSide = slot.container == inventory;
+            GroupSettings settings = playerSide ? playerSettings : containerSettings;
             if (!settings.isLocked(Sorter.lockId(slot, inventory))) {
                 continue;
             }
+            String slotKey = playerSide ? Sorter.GROUP_PLAYER : containerKey;
+            boolean strong = selecting && slotKey.equals(selectKey);
+            int tint = strong ? GOLD_TINT : LOCKED_FAINT_TINT;
+            int edge = strong ? GOLD : LOCKED_FAINT;
             int x = guiLeft + slot.x;
             int y = guiTop + slot.y;
             g.fill(x, y, x + 16, y + 16, tint);
@@ -648,7 +659,8 @@ public final class ScreenActions {
             if (hover) {
                 g.fill(left + 1, rowTop, left + width - 1, rowTop + ROW_HEIGHT, HOVER_FACE);
             }
-            g.centeredText(small(labels.get(row)), left + width / 2, rowTop + 2, TEXT);
+            // Left-aligned, and centered vertically in the row.
+            g.text(small(labels.get(row)), left + ROW_PADDING, rowTop + (ROW_HEIGHT - font.lineHeight) / 2, TEXT);
         }
     }
 
