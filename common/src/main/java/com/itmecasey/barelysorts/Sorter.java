@@ -290,18 +290,7 @@ public final class Sorter {
 
     /** Parses the comma-separated locked ids sent with a sort request. */
     static java.util.Set<Integer> parseLocked(String ids) {
-        java.util.Set<Integer> out = new java.util.HashSet<>();
-        if (ids == null || ids.isEmpty()) {
-            return out;
-        }
-        for (String part : ids.split(",")) {
-            try {
-                out.add(Integer.parseInt(part.trim()));
-            } catch (NumberFormatException e) {
-                // Ignore anything that is not an id.
-            }
-        }
-        return out;
+        return LockedIds.parse(ids);
     }
 
     /** The slots that belong to a group, in the menu's own order. */

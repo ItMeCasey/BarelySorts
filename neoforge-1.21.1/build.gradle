@@ -20,6 +20,9 @@ sourceSets {
         java.srcDir "../common/src/main/java"
         resources.srcDir "../common/src/main/resources"
     }
+    test {
+        java.srcDir "../common/src/test/java"
+    }
 }
 
 neoForge {
@@ -64,3 +67,18 @@ var generateModMetadata = tasks.register('generateModMetadata', ProcessResources
 }
 sourceSets.main.resources.srcDir generateModMetadata
 if (file("test-mods.gradle").exists()) { apply from: "test-mods.gradle" }
+
+// Unit tests for the shared logic that does not need a running game (settings, sort choices, lock lists).
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation platform("org.junit:junit-bom:5.11.4")
+    testImplementation "org.junit.jupiter:junit-jupiter"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+}
