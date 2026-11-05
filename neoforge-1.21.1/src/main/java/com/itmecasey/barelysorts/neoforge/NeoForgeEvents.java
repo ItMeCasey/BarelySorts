@@ -66,7 +66,7 @@ final class NeoForgeScreenEvents {
     @SubscribeEvent
     public static void onKey(ScreenEvent.KeyPressed.Pre event) {
         if (event.getScreen() instanceof AbstractContainerScreen<?> screen
-                && ScreenActions.key(screen, event.getKeyCode(), event.getScanCode())) {
+                && ScreenActions.key(screen, event.getKeyCode(), m -> m.matches(event.getKeyCode(), event.getScanCode()))) {
             event.setCanceled(true);
         }
     }

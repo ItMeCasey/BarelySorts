@@ -53,12 +53,24 @@ public final class CompatImpl implements Compat.Api {
     }
 
     @Override
+    public boolean leftMouseDown() {
+        return org.lwjgl.glfw.GLFW.glfwGetMouseButton(windowHandle(), org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT)
+                == org.lwjgl.glfw.GLFW.GLFW_PRESS;
+    }
+
+    @Override
     public boolean keyMatches(KeyMapping mapping, int keyCode, int scanCode) {
         return mapping.matches(new KeyEvent(keyCode, scanCode, 0));
     }
 
     @Override
-    public KeyMapping newKey(String name, InputConstants.Type type, int code) {
+    public KeyMapping newKey(String name, boolean mouse, int code) {
+        InputConstants.Type type = mouse ? InputConstants.Type.MOUSE : InputConstants.Type.KEYSYM;
         return new KeyMapping(name, type, code, Category.VALUE);
+    }
+
+    @Override
+    public void giveBack(ServerPlayer player, ItemStack stack) {
+        player.getInventory().placeItemBackInInventory(stack);
     }
 }

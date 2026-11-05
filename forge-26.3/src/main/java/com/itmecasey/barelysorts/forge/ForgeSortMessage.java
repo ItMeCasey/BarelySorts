@@ -1,0 +1,28 @@
+package com.itmecasey.barelysorts.forge;
+
+import com.itmecasey.barelysorts.Sorter;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.event.network.CustomPayloadEvent;
+
+/** Client asks the server to sort, delete, quick-move or change a setting. Same meaning as the 1.21.1 payload. */
+public record ForgeSortMessage(int containerId, String group, String method, String key, String lockedIds) {
+    static final StreamCodec<FriendlyByteBuf, ForgeSortMessage> CODEC = StreamCodec.composite(
+            ByteBufCodecs.VAR_INT, ForgeSortMessage::containerId,
+            ByteBufCodecs.STRING_UTF8, ForgeSortMessage::group,
+            ByteBufCodecs.STRING_UTF8, ForgeSortMessage::method,
+            ByteBufCodecs.STRING_UTF8, ForgeSortMessage::key,
+            ByteBufCodecs.STRING_UTF8, ForgeSortMessage::lockedIds,
+            ForgeSortMessage::new);
+
+    /** Runs on the main thread, because the channel consumes messages there. */
+    static void handle(ForgeSortMessage message, CustomPayloadEvent.Context context) {
+        ServerPlayer player = context.getSender();
+        if (player != null) {
+            Sorter.sortGroup(player, message.containerId(), message.group(), message.method(), message.key(),
+                    message.lockedIds());
+        }
+    }
+}

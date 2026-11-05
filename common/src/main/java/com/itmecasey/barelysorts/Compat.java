@@ -32,11 +32,17 @@ public final class Compat {
         /** Whether a GLFW key is held down right now. */
         boolean keyDown(int glfwKey);
 
+        /** Whether the left mouse button is held down right now. */
+        boolean leftMouseDown();
+
         /** Whether a key mapping matches a key press. */
         boolean keyMatches(KeyMapping mapping, int keyCode, int scanCode);
 
-        /** A key mapping in the mod's Controls category. */
-        KeyMapping newKey(String name, InputConstants.Type type, int code);
+        /** A key mapping in the mod's Controls category, on the keyboard or the mouse. */
+        KeyMapping newKey(String name, boolean mouse, int code);
+
+        /** Puts a stack back in the player's inventory, dropping it if there is no room. */
+        void giveBack(ServerPlayer player, ItemStack stack);
     }
 
     private static Api api;
@@ -72,11 +78,19 @@ public final class Compat {
         return api.keyDown(glfwKey);
     }
 
+    public static boolean leftMouseDown() {
+        return api.leftMouseDown();
+    }
+
     public static boolean keyMatches(KeyMapping mapping, int keyCode, int scanCode) {
         return api.keyMatches(mapping, keyCode, scanCode);
     }
 
-    public static KeyMapping newKey(String name, InputConstants.Type type, int code) {
-        return api.newKey(name, type, code);
+    public static KeyMapping newKey(String name, boolean mouse, int code) {
+        return api.newKey(name, mouse, code);
+    }
+
+    public static void giveBack(ServerPlayer player, ItemStack stack) {
+        api.giveBack(player, stack);
     }
 }

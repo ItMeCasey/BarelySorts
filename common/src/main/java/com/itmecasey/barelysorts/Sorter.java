@@ -255,7 +255,7 @@ public final class Sorter {
         if (source.getItem().isEmpty() && source.mayPlace(stack)) {
             source.set(stack);
         } else {
-            player.getInventory().placeItemBackInInventory(stack);
+            Compat.giveBack(player, stack);
         }
     }
 

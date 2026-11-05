@@ -50,7 +50,7 @@ public final class FabricClient implements ClientModInitializer {
             ScreenMouseEvents.allowMouseClick(screen).register((s, mouseX, mouseY, button) ->
                     !ScreenActions.mouseButton(container, mouseX, mouseY, button));
             ScreenKeyboardEvents.allowKeyPress(screen).register((s, key, scancode, modifiers) ->
-                    !ScreenActions.key(container, key, scancode));
+                    !ScreenActions.key(container, key, m -> m.matches(key, scancode)));
         });
     }
 }

@@ -4,7 +4,6 @@ import com.itmecasey.barelysorts.Compat;
 import com.itmecasey.barelysorts.Platform;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 
@@ -15,17 +14,17 @@ import java.util.List;
 public final class KeyBindings {
     /** Sorts the group under the mouse. Default R. */
     public static final KeyMapping SORT =
-            Compat.newKey("key.barelysorts.sort", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_R);
+            Compat.newKey("key.barelysorts.sort", false, InputConstants.KEY_R);
     /** Hold to mark slots for deletion. Default X. */
     public static final KeyMapping MARK =
-            Compat.newKey("key.barelysorts.mark", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_X);
+            Compat.newKey("key.barelysorts.mark", false, InputConstants.KEY_X);
 
     private KeyBindings() {
     }
 
     /** Sorts the group when clicked. Default middle mouse button. Can be rebound to another mouse button. */
     public static final KeyMapping SORT_CLICK =
-            Compat.newKey("key.barelysorts.sort_click", InputConstants.Type.MOUSE, GLFW.GLFW_MOUSE_BUTTON_MIDDLE);
+            Compat.newKey("key.barelysorts.sort_click", true, InputConstants.MOUSE_BUTTON_MIDDLE);
 
     public static List<KeyMapping> all() {
         return List.of(SORT, MARK, SORT_CLICK);
@@ -42,11 +41,11 @@ public final class KeyBindings {
     }
 
     public static boolean ctrlDown() {
-        return isKeyDown(GLFW.GLFW_KEY_LEFT_CONTROL) || isKeyDown(GLFW.GLFW_KEY_RIGHT_CONTROL);
+        return isKeyDown(InputConstants.KEY_LCONTROL) || isKeyDown(InputConstants.KEY_RCONTROL);
     }
 
     public static boolean shiftDown() {
-        return isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT) || isKeyDown(GLFW.GLFW_KEY_RIGHT_SHIFT);
+        return isKeyDown(InputConstants.KEY_LSHIFT) || isKeyDown(InputConstants.KEY_RSHIFT);
     }
 
     private static boolean isKeyDown(int key) {

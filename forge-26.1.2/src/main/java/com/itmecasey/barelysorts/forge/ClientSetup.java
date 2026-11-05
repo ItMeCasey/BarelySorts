@@ -50,6 +50,7 @@ final class ClientSetup {
                         && ScreenActions.mouseButton(screen, e.getMouseX(), e.getMouseY(), e.getButton()));
         ScreenEvent.KeyPressed.Pre.BUS.addListener((ScreenEvent.KeyPressed.Pre e) ->
                 e.getScreen() instanceof AbstractContainerScreen<?> screen
-                        && ScreenActions.key(screen, e.getKeyCode(), e.getScanCode()));
+                        && ScreenActions.key(screen, e.getKeyCode(), m -> m.matches(
+                                new net.minecraft.client.input.KeyEvent(e.getKeyCode(), e.getScanCode(), 0))));
     }
 }

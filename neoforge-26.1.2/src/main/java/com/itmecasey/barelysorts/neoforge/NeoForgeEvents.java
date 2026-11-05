@@ -66,7 +66,8 @@ final class NeoForgeScreenEvents {
     @SubscribeEvent
     public static void onKey(ScreenEvent.KeyPressed.Pre event) {
         if (event.getScreen() instanceof AbstractContainerScreen<?> screen
-                && ScreenActions.key(screen, event.getKeyCode(), event.getScanCode())) {
+                && ScreenActions.key(screen, event.getKeyCode(), m -> m.matches(
+                        new net.minecraft.client.input.KeyEvent(event.getKeyCode(), event.getScanCode(), 0)))) {
             event.setCanceled(true);
         }
     }

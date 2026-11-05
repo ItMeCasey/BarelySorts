@@ -5,6 +5,7 @@ import com.itmecasey.barelysorts.Compat;
 import com.itmecasey.barelysorts.Platform;
 import com.itmecasey.barelysorts.Sorter;
 import com.mojang.blaze3d.platform.InputConstants;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 
@@ -13,11 +14,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -215,8 +216,8 @@ public final class ScreenActions {
      * Escape closes the delete dialog, the popup, or slot selection. R sorts the group under the mouse; away from a
      * group it does nothing, so the recipe book key keeps working. Returns true when the key was used.
      */
-    public static boolean key(AbstractContainerScreen<?> screen, int keyCode, int scanCode) {
-        if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
+    public static boolean key(AbstractContainerScreen<?> screen, int keyCode, Predicate<KeyMapping> sortKeyMatches) {
+        if (keyCode == InputConstants.KEY_ESCAPE) {
             if (confirmScreen == screen) {
                 closeConfirm();
                 return true;
@@ -230,7 +231,7 @@ public final class ScreenActions {
                 return true;
             }
         }
-        if (Compat.keyMatches(KeyBindings.SORT, keyCode, scanCode)) {
+        if (sortKeyMatches.test(KeyBindings.SORT)) {
             return keyR(screen);
         }
         return false;
@@ -307,8 +308,7 @@ public final class ScreenActions {
      */
     private static void updateShiftDrag(AbstractContainerScreen<?> screen, double mouseX, double mouseY) {
         // Shift-drag needs the left mouse button held as well, so moving the mouse with Shift alone does nothing.
-        boolean leftHeld = GLFW.glfwGetMouseButton(Compat.windowHandle(),
-                GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS;
+        boolean leftHeld = Compat.leftMouseDown();
         if (!KeyBindings.shiftDown() || !leftHeld) {
             dragged.clear();
             dragScreen = null;
