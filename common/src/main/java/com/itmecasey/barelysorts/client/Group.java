@@ -4,6 +4,8 @@ import com.itmecasey.barelysorts.Platform;
 import com.itmecasey.barelysorts.Sorter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
+import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.inventory.Slot;
 
@@ -19,7 +21,7 @@ public record Group(String name, String settingsKey, List<Slot> slots, int left,
     /** Every group the open screen shows, or none for screens that cannot be sorted (creative, for one). */
     public static List<Group> of(AbstractContainerScreen<?> screen) {
         List<Group> groups = new ArrayList<>();
-        if (!Sorter.isStorage(screen.getMenu()) || Minecraft.getInstance().player == null) {
+        if (screen instanceof CreativeModeInventoryScreen || Minecraft.getInstance().player == null) {
             return groups;
         }
         var inventory = Minecraft.getInstance().player.getInventory();
@@ -30,7 +32,7 @@ public record Group(String name, String settingsKey, List<Slot> slots, int left,
                 if (slot.getContainerSlot() >= 9 && slot.getContainerSlot() <= 35) {
                     playerMain.add(slot);
                 }
-            } else if (!(slot instanceof ResultSlot)) {
+            } else if (!(slot instanceof ResultSlot) && !(slot.container instanceof CraftingContainer)) {
                 container.add(slot);
             }
         }

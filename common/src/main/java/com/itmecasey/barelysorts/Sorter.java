@@ -6,11 +6,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ChestMenu;
-import net.minecraft.world.inventory.DispenserMenu;
-import net.minecraft.world.inventory.HopperMenu;
+import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.ResultSlot;
-import net.minecraft.world.inventory.ShulkerBoxMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
@@ -35,19 +32,10 @@ public final class Sorter {
     private Sorter() {
     }
 
-    /**
-     * Only storage containers can be sorted: chests, barrels, shulker boxes, hoppers and droppers. Crafting stations,
-     * furnaces, the personal crafter and the creative picker are never sorted.
-     */
-    public static boolean isStorage(AbstractContainerMenu menu) {
-        return menu instanceof ChestMenu || menu instanceof ShulkerBoxMenu
-                || menu instanceof HopperMenu || menu instanceof DispenserMenu;
-    }
-
     public static void sortGroup(ServerPlayer player, int containerId, String group, String methodName, String keyName) {
         AbstractContainerMenu menu = player.containerMenu;
         // The creative item picker is a client-only menu; its slots hold infinite stacks and are never sorted.
-        if (menu.containerId != containerId || !isStorage(menu)) {
+        if (menu.containerId != containerId || menu.getClass().getName().endsWith("ItemPickerMenu")) {
             return;
         }
         List<Slot> slots = groupSlots(menu, player, group);
@@ -100,7 +88,8 @@ public final class Sorter {
                     slots.add(slot);
                 }
             } else if (GROUP_CONTAINER.equals(group)) {
-                if (!playerSlot && !(slot instanceof ResultSlot)) {
+                // Crafting grids (the 2x2 personal crafter and the 3x3 crafting table) are never sorted.
+                if (!playerSlot && !(slot instanceof ResultSlot) && !(slot.container instanceof CraftingContainer)) {
                     slots.add(slot);
                 }
             }

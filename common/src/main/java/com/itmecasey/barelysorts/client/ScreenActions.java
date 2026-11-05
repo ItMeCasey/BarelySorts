@@ -22,7 +22,7 @@ public final class ScreenActions {
     private static final int ROW_HEIGHT = 12;
     private static final int ROWS = 3;
     private static final int EDGE = 2;
-    private static final float TEXT_SCALE = 0.75f;
+    private static final float TEXT_SCALE = 0.8f;
     private static final int FRAME = 0xFF2E2A46;
     private static final int FACE = 0xFF1A1830;
     private static final int HOVER_FACE = 0xFF2E2A46;
