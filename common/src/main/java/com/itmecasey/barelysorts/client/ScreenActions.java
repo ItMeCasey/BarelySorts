@@ -648,7 +648,7 @@ public final class ScreenActions {
             if (hover) {
                 g.fill(left + 1, rowTop, left + width - 1, rowTop + ROW_HEIGHT, HOVER_FACE);
             }
-            g.text(small(labels.get(row)), left + ROW_PADDING, rowTop + 2, TEXT);
+            g.centeredText(small(labels.get(row)), left + width / 2, rowTop + 2, TEXT);
         }
     }
 
