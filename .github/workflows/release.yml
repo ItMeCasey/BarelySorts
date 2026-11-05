@@ -18,6 +18,10 @@ on:
         description: Upload to CurseForge (off builds and attaches the jars to the run only)
         type: boolean
         default: false
+      dry_run:
+        description: Check the CurseForge game version ids and print the upload plan, uploading nothing
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -130,8 +134,20 @@ jobs:
             --notes-file notes.md \
             --prerelease
 
+      - name: CurseForge dry run (reads the live game version list, uploads nothing)
+        if: inputs.dry_run
+        env:
+          CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+        run: |
+          python3 .github/scripts/publish_curseforge.py \
+            --jars dist \
+            --version "${{ steps.version.outputs.version }}" \
+            --changelog-file notes.md \
+            --release-type "${{ inputs.release_type || 'beta' }}" \
+            --dry-run
+
       - name: Upload to CurseForge
-        if: github.ref_type == 'tag' || inputs.publish
+        if: (github.ref_type == 'tag' || inputs.publish) && !inputs.dry_run
         env:
           CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
         run: |
