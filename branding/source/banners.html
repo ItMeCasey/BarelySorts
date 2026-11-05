@@ -1,0 +1,325 @@
+<!doctype html>
+<!--
+  Renders the BarelySorts banners. Each asset is picked by the URL hash, e.g. banners.html#banner.
+  branding/source/render_banners.py screenshots every asset with headless Chrome.
+  The pixel font and sprites below are original to this project.
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  :root {
+    --bg0: #0f0e1a; --bg1: #1a1830; --edge: #2e2a46;
+    --gold: #f2b33d; --gold-hi: #ffe28c; --gold-lo: #b27420;
+    --text: #f4f2ff; --muted: #a9a4c8; --mod: #7aa8ff; --green: #7ed957;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg0); overflow: hidden; }
+  body { font-family: "Bahnschrift", "Segoe UI", sans-serif; color: var(--text); }
+  .stage { position: relative; overflow: hidden;
+    background:
+      radial-gradient(ellipse at 18% 40%, rgba(242,179,61,.16), transparent 55%),
+      radial-gradient(ellipse at 85% 70%, rgba(122,168,255,.12), transparent 50%),
+      linear-gradient(160deg, var(--bg1), var(--bg0)); }
+  .stage::before { content: ""; position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+    background-size: 32px 32px; }
+  .stage > * { position: relative; }
+  canvas { image-rendering: pixelated; display: block; }
+  .icon { image-rendering: pixelated; display: block; filter: drop-shadow(0 10px 24px rgba(0,0,0,.5)); }
+  .tag { font-size: 30px; color: var(--muted); letter-spacing: .5px; }
+  .tag b { color: var(--text); font-weight: 600; }
+  .meta { display: flex; gap: 12px; flex-wrap: wrap; }
+  .pill { font-size: 20px; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--edge);
+    background: rgba(255,255,255,.04); color: var(--muted); }
+  .pill.on { color: var(--bg0); background: var(--gold); border-color: var(--gold); font-weight: 600; }
+
+  /* Mock overlay panel, shaped like the mod's dark theme. */
+  .panel { display: inline-flex; flex-direction: column; gap: 8px; min-width: 330px;
+    padding: 14px 18px 16px; border-radius: 6px;
+    background: rgba(16, 14, 28, .94); border: 2px solid #3a3360;
+    box-shadow: inset 0 0 0 2px rgba(0,0,0,.6), 0 18px 40px rgba(0,0,0,.45); }
+  .row { display: flex; align-items: center; gap: 12px; }
+  .name { font-size: 26px; font-weight: 600; line-height: 1; }
+  .mod { font-size: 19px; color: var(--mod); font-style: italic; line-height: 1; margin-top: 4px; }
+  .line { font-size: 20px; color: #d9d6ee; }
+  .line .k { color: var(--muted); }
+  .bar { position: relative; height: 22px; border-radius: 3px; background: #2a2640; overflow: hidden;
+    border: 1px solid #000; }
+  .bar i { position: absolute; inset: 0 auto 0 0; }
+  .bar span { position: absolute; inset: 0; display: flex; align-items: center; padding-left: 8px;
+    font-size: 16px; color: #fff; text-shadow: 1px 1px 0 #000; }
+  .grid { display: flex; gap: 6px; }
+  .slot { position: relative; width: 44px; height: 44px; border-radius: 3px; background: #24203a;
+    display: grid; place-items: center; }
+  .slot b { position: absolute; right: 3px; bottom: 0; font-size: 15px; text-shadow: 1px 1px 0 #000; }
+  .hearts { display: flex; gap: 3px; }
+  .check { color: var(--green); font-weight: 700; }
+  .badge { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+
+  .cap { font-size: 22px; color: var(--muted); margin-top: 14px; }
+  .cap b { display: block; font-size: 26px; color: var(--text); font-weight: 600; margin-bottom: 4px; }
+  /* Theme panels, colors from client/Palette.java. */
+  .tpanel { display: flex; flex-direction: column; gap: 10px; width: 330px; padding: 14px 16px 16px;
+    background: var(--p); color: var(--t); position: relative; }
+  .tpanel.edge { box-shadow: inset 0 0 0 3px var(--e); }
+  .tpanel.rounded { border-radius: 5px; }
+  .tpanel.accent::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: var(--a); }
+  .tpanel.shadow .name, .tpanel.shadow .line { text-shadow: 2px 2px 0 rgba(0,0,0,.55); }
+  .tpanel .name { color: var(--t); }
+  .tpanel .tmod { font-size: 19px; color: var(--s); line-height: 1; margin-top: 4px; }
+  .tpanel .line { color: var(--t); }
+  .tpanel .bar { background: var(--b); border: 0; border-radius: 0; }
+  .tlabel { margin-top: 18px; display: flex; justify-content: center; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+// ---------- pixel font (5x7, original) ----------
+const FONT = {
+  A:[".###.","#...#","#...#","#####","#...#","#...#","#...#"],
+  B:["####.","#...#","#...#","####.","#...#","#...#","####."],
+  C:[".###.","#...#","#....","#....","#....","#...#",".###."],
+  D:["####.","#...#","#...#","#...#","#...#","#...#","####."],
+  E:["#####","#....","#....","####.","#....","#....","#####"],
+  F:["#####","#....","#....","####.","#....","#....","#...."],
+  G:[".###.","#...#","#....","#.###","#...#","#...#",".###."],
+  H:["#...#","#...#","#...#","#####","#...#","#...#","#...#"],
+  I:["###",".#.",".#.",".#.",".#.",".#.","###"],
+  J:["..###","...#.","...#.","...#.","#..#.","#..#.",".##.."],
+  K:["#...#","#..#.","#.#..","##...","#.#..","#..#.","#...#"],
+  L:["#....","#....","#....","#....","#....","#....","#####"],
+  M:["#...#","##.##","#.#.#","#.#.#","#...#","#...#","#...#"],
+  N:["#...#","##..#","#.#.#","#..##","#...#","#...#","#...#"],
+  O:[".###.","#...#","#...#","#...#","#...#","#...#",".###."],
+  P:["####.","#...#","#...#","####.","#....","#....","#...."],
+  Q:[".###.","#...#","#...#","#...#","#.#.#","#..#.",".##.#"],
+  R:["####.","#...#","#...#","####.","#.#..","#..#.","#...#"],
+  S:[".####","#....","#....",".###.","....#","....#","####."],
+  T:["#####","..#..","..#..","..#..","..#..","..#..","..#.."],
+  U:["#...#","#...#","#...#","#...#","#...#","#...#",".###."],
+  V:["#...#","#...#","#...#","#...#","#...#",".#.#.","..#.."],
+  W:["#...#","#...#","#...#","#.#.#","#.#.#","##.##","#...#"],
+  X:["#...#","#...#",".#.#.","..#..",".#.#.","#...#","#...#"],
+  Y:["#...#","#...#",".#.#.","..#..","..#..","..#..","..#.."],
+  Z:["#####","....#","...#.","..#..",".#...","#....","#####"],
+  "?":[".###.","#...#","....#","..##.","..#..",".....","..#.."],
+  "!":["#","#","#","#","#",".","#"],
+  ".":[".",".",".",".",".",".","#"],
+  "-":["....","....","....","####","....","....","...."],
+  " ":["...","...","...","...","...","...","..."],
+};
+const BEVEL = ["#ffe28c","#ffe28c","#f7c95a","#f2b33d","#f2b33d","#d8952e","#b27420"];
+const WHITE = ["#ffffff","#ffffff","#f1efff","#e4e1f7","#e4e1f7","#cfcbe6","#b3aed0"];
+
+function pixelText(str, s, colors = BEVEL) {
+  const cols = [];
+  for (const ch of str.toUpperCase()) { const g = FONT[ch] || FONT["?"]; cols.push(g, null); }
+  const w = cols.reduce((n, g) => n + (g ? g[0].length : 1), 0);
+  const c = document.createElement("canvas");
+  c.width = (w + 1) * s; c.height = 8 * s;
+  const x2 = c.getContext("2d");
+  for (const pass of ["shadow", "face"]) {
+    let x = 0;
+    for (const g of cols) {
+      if (!g) { x += 1; continue; }
+      g.forEach((row, y) => [...row].forEach((p, i) => {
+        if (p !== "#") return;
+        if (pass === "shadow") { x2.fillStyle = "rgba(0,0,0,.55)"; x2.fillRect((x + i) * s + s * .6, y * s + s * .6, s, s); }
+        else { x2.fillStyle = colors[y]; x2.fillRect((x + i) * s, y * s, s, s); }
+      }));
+      x += g[0].length;
+    }
+  }
+  return c;
+}
+
+// ---------- sprites (original) ----------
+const GEM = ["..hhhh..",".hmmmmd.","hmmmmmmd","hmmmmmdd",".hmmmdd.","..hmdd..","...dd..."];
+const gem = (h, m, d) => ({pal: {h, m, d}, rows: GEM});
+const ING = ["....aaaa..","..aaabbbb.","aaabbbbbbc","bbbbbbbccc",".cccccccc."];
+const ingot = (a, b, c) => ({pal: {a, b, c}, rows: ING});
+const SPR = {
+  wheat: {pal:{y:"#e8c547",d:"#b8902a",g:"#6a9b3a"}, rows:[
+    "....y...y...","...yd..ydy..","...yy.yy.y..","..y.dyyd.yd.","..yd.yd.yy..","...yy.y.y...",
+    "....g.g.g...","....g.g.g...","...g..g..g..","...g..g..g..","..g...g...g.","..g...g...g."]},
+  chest: {pal:{k:"#2a1a0e",b:"#a8743a",d:"#7a5126",l:"#e6c35c"}, rows:[
+    "kkkkkkkkkkkk","kbbbbbbbbbbk","kbbbbbbbbbbk","kddddddddddk","kkkkkllkkkkk","kbbbbllbbbbk",
+    "kbbbbbbbbbbk","kbbbbbbbbbbk","kbbbbbbbbbbk","kddddddddddk","kkkkkkkkkkkk"]},
+  coal: {pal:{k:"#1e1e24",g:"#3c3c46",h:"#6a6a78"}, rows:[
+    "..kkk...",".kghgk..","kghggkk.","kgggghk.","kkggggk.",".kkgkk..","..kkk..."]},
+  iron: ingot("#e9e9f0", "#bdbdc8", "#8a8a96"),
+  gold: ingot("#ffe28c", "#f2b33d", "#b27420"),
+  copper: ingot("#f0a77a", "#d0713f", "#8e4526"),
+  diamond: gem("#aafaf6", "#52d8d4", "#2a8ea2"),
+  emerald: gem("#8ef2a2", "#3ec066", "#1e7a3e"),
+  lapis: gem("#86a4ff", "#3e5ccc", "#243486"),
+  amethyst: gem("#d4a4ff", "#a266de", "#66389a"),
+  redstone: gem("#ff8282", "#de3638", "#8c1622"),
+  lock: {pal:{k:"#cfd6e6",g:"#f2b33d",G:"#b27420"}, rows:[
+    "..kkkk..",".k....k.",".k....k.","gggggggg","gggGGggg","gggGGggg","gggggggg","GGGGGGGG"]},
+};
+function sprite(name, s) {
+  const {pal, rows} = SPR[name];
+  const c = document.createElement("canvas");
+  c.width = rows[0].length * s; c.height = rows.length * s;
+  const x = c.getContext("2d");
+  rows.forEach((r, y) => [...r].forEach((p, i) => { if (pal[p]) { x.fillStyle = pal[p]; x.fillRect(i * s, y * s, s, s); } }));
+  return c;
+}
+// Buttons as drawn in game: a sort glyph (bars of falling length) and a hamburger (three bars).
+function glyph(widths, s, color = "#f2b33d") {
+  const c = document.createElement("canvas");
+  c.width = 11 * s; c.height = (widths.length * 2 - 1) * s;
+  const x = c.getContext("2d"); x.fillStyle = color;
+  widths.forEach((w, i) => x.fillRect(0, i * 2 * s, w * s, s));
+  return c;
+}
+function btn(kind) {
+  const g = kind === "sort" ? glyph([9, 7, 5, 3], 2) : glyph([9, 9, 9], 2, "#cfd6e6");
+  return el("div", {style: "width:34px;height:34px;display:grid;place-items:center;background:#2a2640;border:2px solid #000;border-radius:2px"}, g);
+}
+
+// ---------- helpers ----------
+// Compact assets render at device scale 2; half() shows a canvas at half its pixel size so it stays crisp.
+function half(c) { c.style.width = c.width / 2 + "px"; c.style.height = c.height / 2 + "px"; return c; }
+function el(tag, attrs = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) k === "style" ? (e.style.cssText = v) : e.setAttribute(k, v);
+  for (const k of kids) e.append(k);
+  return e;
+}
+function iconImg(px) { return el("img", {class: "icon", src: "../icon/icon_512.png", width: px, height: px}); }
+function head(spr, s, name, mod, ...badges) {
+  const box = el("div", {style: "width:48px;height:48px;display:grid;place-items:center"}, sprite(spr, s));
+  const r = el("div", {class: "row"}, box, el("div", {}, el("div", {class: "name"}, name), el("div", {class: "mod"}, mod)));
+  if (badges.length) r.append(el("div", {class: "badge", style: "gap:6px"}, ...badges));
+  return r;
+}
+function slot(item) {
+  const s = el("div", {class: "slot"});
+  if (item) { s.append(sprite(item[0], 3)); s.append(el("b", {}, item[1])); }
+  return s;
+}
+function slotGrid(items, cols = 9) {
+  return el("div", {style: `display:grid;grid-template-columns:repeat(${cols},44px);gap:6px`}, ...items.map(slot));
+}
+const E = null;
+// The same 14 stacks, scattered and then sorted by item name with partial stacks merged.
+const MESSY = [["iron",40],E,["wheat",9],E,["coal",30],["redstone",64],E,E,["gold",32],
+               E,["iron",41],E,["diamond",7],E,["coal",34],E,["copper",64],E,
+               ["wheat",64],E,E,["lapis",48],["coal",40],E,E,["emerald",15],["amethyst",12]];
+const SORTED = [["amethyst",12],["coal",64],["coal",40],["copper",64],["diamond",7],["emerald",15],["gold",32],["iron",64],["iron",17],
+                ["lapis",48],["redstone",64],["wheat",64],["wheat",9],E,E,E,E,E,E,E,E,E,E,E,E,E,E];
+const chestPanel = (items) => el("div", {class: "panel"},
+  head("chest", 4, "Chest", "Minecraft", btn("sort"), btn("menu")), slotGrid(items));
+const miniRow = () => el("div", {class: "panel"},
+  head("chest", 4, "Chest", "Minecraft", btn("sort"), btn("menu")),
+  slotGrid([["amethyst",12],["coal",64],["copper",64],["diamond",7]], 4));
+// A gold right arrow, s pixels per block.
+function arrow(s) {
+  const cv = document.createElement("canvas"); cv.width = 14 * s; cv.height = 11 * s;
+  const x = cv.getContext("2d"); x.fillStyle = "#f2b33d";
+  x.fillRect(0, 4 * s, 9 * s, 3 * s);
+  x.beginPath(); x.moveTo(8 * s, 0); x.lineTo(14 * s, 5.5 * s); x.lineTo(8 * s, 11 * s); x.closePath(); x.fill();
+  return cv;
+}
+
+const PANELS = {
+  sort: () => chestPanel(SORTED.slice(0, 9)),
+  method: () => el("div", {class: "panel"}, head("chest", 4, "Sort method", "Settings"),
+    el("div", {class: "line"}, el("span", {class: "check"}, "● "), "Rows ", el("span", {class: "k"}, "left to right")),
+    el("div", {class: "line"}, el("span", {class: "k"}, "○ "), "Columns ", el("span", {class: "k"}, "top to bottom"))),
+  by: () => el("div", {class: "panel"}, head("coal", 4, "Sort by", "Settings"),
+    el("div", {class: "line"}, el("span", {class: "k"}, "○ "), "Quantity"),
+    el("div", {class: "line"}, el("span", {class: "check"}, "● "), "Item name"),
+    el("div", {class: "line"}, el("span", {class: "k"}, "○ "), "Mod name")),
+  lock: () => el("div", {class: "panel"}, head("lock", 4, "Locked", "This group"),
+    el("div", {class: "line"}, el("span", {class: "k"}, "Sort leaves it exactly as is"))),
+  autofill: () => el("div", {class: "panel"}, head("iron", 4, "Autofill", "Hotbar"),
+    slotGrid([["iron",64],["gold",32],E,["lapis",48]], 4),
+    el("div", {class: "line"}, el("span", {class: "k"}, "Last one used? "), "The next stack steps in")),
+};
+
+// ---------- assets ----------
+const TAG = "Sort any inventory. One click.";
+const ASSETS = {
+  banner: [800, 150, (r) => {
+    r.style.cssText += "display:flex;align-items:center;gap:24px;padding:0 28px";
+    r.append(iconImg(104));
+    r.append(el("div", {style: "display:flex;flex-direction:column;align-items:flex-start;gap:11px;flex:1"},
+      half(pixelText("BarelySorts", 7)),
+      el("div", {class: "tag", style: "font-size:16px"}, "Sort any inventory. ", el("b", {}, "One click.")),
+      el("div", {class: "meta", style: "gap:6px"},
+        el("span", {class: "pill on", style: "font-size:11px;padding:3px 9px"}, "NeoForge"),
+        el("span", {class: "pill", style: "font-size:11px;padding:3px 9px"}, "Client + server"),
+        el("span", {class: "pill", style: "font-size:11px;padding:3px 9px"}, "Open source"))));
+    const p = miniRow(); p.style.cssText += ";zoom:.5;transform:rotate(-2deg)"; r.append(p);
+  }],
+  sort_strip: [800, 150, (r) => {
+    r.style.cssText += "display:flex;align-items:center;justify-content:center;gap:22px";
+    const side = (label, items) => {
+      const p = el("div", {class: "panel", style: "zoom:.46;min-width:0"}, slotGrid(items, 9));
+      return el("div", {}, p, el("div", {class: "tlabel", style: "margin-top:8px"}, half(pixelText(label, 4, label === "After" ? BEVEL : WHITE))));
+    };
+    const mid = half(arrow(3)); mid.style.marginBottom = "22px";
+    r.append(side("Before", MESSY.slice(0, 18)), mid, side("After", SORTED.slice(0, 18)));
+  }],
+  social: [1280, 640, (r) => {
+    r.style.cssText += "display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;text-align:center";
+    r.append(iconImg(220));
+    r.append(pixelText("BarelySorts", 9));
+    r.append(el("div", {class: "tag"}, TAG));
+  }],
+  sorting: [1920, 1080, (r) => {
+    r.style.cssText += "display:flex;flex-direction:column";
+    r.append(el("div", {style: "height:230px;display:flex;align-items:center;justify-content:center;gap:36px"}, iconImg(130),
+      el("div", {style: "display:flex;flex-direction:column;align-items:flex-start;gap:16px"}, pixelText("Before and after", 7),
+        el("div", {class: "tag"}, "Partial stacks merge, then everything lines up by name, quantity or mod"))));
+    const row = el("div", {style: "flex:1;display:flex;align-items:center;justify-content:center;gap:56px;padding-bottom:50px"});
+    const side = (label, items, bevel) => el("div", {}, el("div", {style: "zoom:1.5"}, chestPanel(items)),
+      el("div", {class: "tlabel", style: "margin-top:28px"}, pixelText(label, 6, bevel ? BEVEL : WHITE)));
+    row.append(side("Before", MESSY), arrow(8), side("After", SORTED, true));
+    r.append(row);
+  }],
+  features: [1920, 1080, (r) => {
+    r.style.cssText += "display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 90px;gap:70px";
+    r.append(el("div", {style: "display:flex;align-items:center;gap:36px"}, iconImg(140),
+      el("div", {style: "display:flex;flex-direction:column;gap:16px"}, pixelText("BarelySorts", 8),
+        el("div", {class: "tag"}, "A sort button on every inventory group"))));
+    const items = [
+      ["sort", "Sort anything", "Chests, barrels, shulkers, your pack"],
+      ["method", "Rows or columns", "Pick how a group fills"],
+      ["by", "Sort by", "Quantity, item name or mod"],
+      ["lock", "Lock a group", "Sorting skips it"],
+      ["autofill", "Hotbar autofill", "Never run dry mid-build"],
+    ];
+    const grid = el("div", {style: "zoom:1.18;display:grid;grid-template-columns:repeat(3,auto);gap:50px 70px;justify-content:center;align-items:start"});
+    for (const [k, t, d] of items) grid.append(el("div", {}, PANELS[k](), el("div", {class: "cap"}, el("b", {}, t), d)));
+    grid.append(el("div", {style: "align-self:center"}, el("div", {class: "meta", style: "flex-direction:column;align-items:flex-start"},
+      el("span", {class: "pill on"}, "NeoForge"), el("span", {class: "pill"}, "Middle-click or R to sort"),
+      el("span", {class: "pill"}, "Server-safe sorting"), el("span", {class: "pill"}, "MIT license"))));
+    r.append(grid);
+  }],
+};
+for (const [k, label] of Object.entries({features: "Features", controls: "Controls", settings: "Settings", install: "Install", faq: "FAQ"})) {
+  ASSETS["h_" + k] = [800, 46, (r) => {
+    r.style.cssText += "display:flex;align-items:center;gap:14px;padding:0 16px;border-top:2px solid var(--gold)";
+    r.append(iconImg(30));
+    r.append(half(pixelText(label, 5)));
+  }];
+}
+
+const name = location.hash.slice(1) || "banner";
+const [w, h, build] = ASSETS[name];
+const root = document.getElementById("root");
+root.className = "stage";
+root.style.cssText = `width:${w}px;height:${h}px`;
+build(root);
+window.ASSET_NAMES = Object.keys(ASSETS);
+</script>
+</body>
+</html>

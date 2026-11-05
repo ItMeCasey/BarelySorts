@@ -33,5 +33,5 @@ Spend: none
 
 ## Documentation and branding
 - [ ] README, LICENSE, PROJECT_STATUS kept current (w:1)
-- [ ] Branding: icon and banners (w:2)
+- [x] Branding: icon, banners, CurseForge description and listing kit (w:2)
 - [ ] Wiki page (w:2)
