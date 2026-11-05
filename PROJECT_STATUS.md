@@ -36,6 +36,6 @@ Spend: none
 - [~] CurseForge project created (id 1784568), first release not yet (w:2)
 
 ## Documentation and branding
-- [~] README, LICENSE, PROJECT_STATUS kept current (README needs the final feature and layout notes) (w:1)
+- [x] README, CHANGELOG, LICENSE and CurseForge description match the tested state (w:1)
 - [x] Branding: icon, banners, CurseForge description and listing kit (w:2)
 - [x] Wiki (9 pages) written, deployed and checked live at itmecasey.com/wiki/barelysorts (w:2)

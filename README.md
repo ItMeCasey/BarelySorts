@@ -15,15 +15,23 @@ sorts it, and a hamburger that opens its settings.
 - **Autofill:** when the last item in a hotbar slot is used up, the same item moves in from the main inventory.
 - **Quick-move:** ctrl-click moves one item, shift-ctrl-click moves every item of that type, and holding shift and the left mouse button while dragging moves each stack you pass.
 
-## Status
+## Versions and loaders
 
-- **Minecraft 1.21.1 NeoForge:** first build. Compiles. Not yet run in a game client.
-- Forge, other Minecraft versions, and Fabric are planned. See [PLAN.md](PLAN.md).
+One combined jar per Minecraft version works on Forge, NeoForge and Fabric: 1.20.1, 1.21.1, 26.1.2, 26.2 and 26.3.
+On 1.20.1, NeoForge uses the Forge 1.20.1 jar. Install it on both the client and the server.
+
+## Tested
+
+Played in a game client: NeoForge 1.21.1, Forge 1.20.1, NeoForge 26.1.2 and NeoForge 26.3.
+
+Every other loader and version compiles and loads on a headless server but has not been played yet: Forge 1.21.1,
+26.1.2, 26.2 and 26.3, NeoForge 26.2, and Fabric on every version. NeoForge 1.20.1 uses the Forge 1.20.1 jar.
+Bug reports for any of them are welcome.
 
 ## Known gaps
 
-- Lock is enforced on the client only.
 - Middle-click and R sort the group under the mouse. R may conflict with the recipe book key in some screens.
+- Vanilla crafting grids and machines, creative screens and Applied Energistics 2 screens are deliberately left alone.
 
 ## License
 
