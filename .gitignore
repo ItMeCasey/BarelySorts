@@ -12,3 +12,4 @@ st*.log
 nf*.log
 release/
 dist/
+scratch-*.log
