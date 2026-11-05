@@ -1,6 +1,6 @@
 package com.itmecasey.barelysorts;
 
-import com.itmecasey.barelysorts.net.SortPayload;
+
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -31,18 +31,18 @@ public final class Sorter {
     private Sorter() {
     }
 
-    public static void sortGroup(ServerPlayer player, SortPayload request) {
+    public static void sortGroup(ServerPlayer player, int containerId, String group, String methodName, String keyName) {
         AbstractContainerMenu menu = player.containerMenu;
         // The creative item picker is a client-only menu; its slots hold infinite stacks and are never sorted.
-        if (menu.containerId != request.containerId() || menu.getClass().getName().endsWith("ItemPickerMenu")) {
+        if (menu.containerId != containerId || menu.getClass().getName().endsWith("ItemPickerMenu")) {
             return;
         }
-        List<Slot> slots = groupSlots(menu, player, request.group());
+        List<Slot> slots = groupSlots(menu, player, group);
         if (slots.isEmpty()) {
             return;
         }
-        SortMethod method = SortMethod.parse(request.method());
-        SortKey key = SortKey.parse(request.key());
+        SortMethod method = SortMethod.parse(methodName);
+        SortKey key = SortKey.parse(keyName);
 
         List<ItemStack> stacks = new ArrayList<>();
         for (Slot slot : slots) {

@@ -13,6 +13,13 @@ base {
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
+// Shared code lives in ../common and is compiled into this loader layer and the combined jar.
+sourceSets {
+    main {
+        java.srcDir "../common/src/main/java"
+    }
+}
+
 neoForge {
     version = neo_version
 

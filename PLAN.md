@@ -34,7 +34,7 @@ Carried over from the playbook where it is known. The 26.2 and 26.3 rows are not
 | 26.2 | to check | to check | to check |
 | 26.3 | to check | to check | to check |
 
-## Layout
+## Layout (as built)
 
 ```
 BarelySorts/
@@ -51,3 +51,15 @@ The first module built is `neoforge-1.21.1`, because its toolchain is already pr
 - Client-only settings (sort method, sort by, lock) are stored on the client for now. Lock is enforced on the client; the server does not check it yet.
 - Quick-move extras from the request (ctrl-click moves one item, shift-ctrl-click moves all of that type, shift-drag) are not in the first build.
 - Middle-click and R are wired to sorting; R may conflict with the recipe book key in some screens.
+
+## Combined jar (how it is built)
+
+- `common/` holds the shared code. Each loader module compiles it with `sourceSets` pointing at `../common/src/main/java`.
+- `neoforge-1.21.1/` and `forge-1.21.1/` each build their own jar: shared classes plus their own loader layer and metadata.
+- `scripts/combine_jars.py <out.jar> <loader jars...>` merges them into one jar, keeping both `META-INF/mods.toml` and
+  `META-INF/neoforge.mods.toml`. Output: `dist/barelysorts-mc1.21.1-<version>.jar`.
+- Loaders reach shared code only through `Platform` (config folder, sort sender) and the `ScreenActions` and `Autofill`
+  entry points.
+
+Verified so far: both loader jars compile; a headless dedicated server starts on NeoForge and on Forge with the mod loaded
+(each module's own run). Not verified: the combined jar itself loaded by either loader, and client-side behavior.
