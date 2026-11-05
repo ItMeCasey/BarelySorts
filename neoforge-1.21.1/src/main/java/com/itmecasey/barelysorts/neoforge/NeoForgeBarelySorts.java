@@ -17,6 +17,7 @@ public final class NeoForgeBarelySorts {
         Platform.init(FMLPaths.CONFIGDIR::get,
                 (containerId, group, method, key, lockedIds) -> PacketDistributor.sendToServer(
                         new NeoForgeSortPayload(containerId, group, method, key, lockedIds)));
+        Platform.setKeyCodeReader(mapping -> mapping.getKey().getValue());
         Platform.setGuiOrigin(new Platform.GuiOrigin() {
             @Override
             public int left(AbstractContainerScreen<?> screen) {

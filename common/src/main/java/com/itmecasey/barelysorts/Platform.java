@@ -1,5 +1,6 @@
 package com.itmecasey.barelysorts;
 
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 
 import java.nio.file.Path;
@@ -25,7 +26,16 @@ public final class Platform {
         int top(AbstractContainerScreen<?> screen);
     }
 
+    /**
+     * The key code a key mapping is currently bound to. NeoForge and Forge expose it as a method; Fabric reads the
+     * field through an access widener, so each loader supplies its own way.
+     */
+    public interface KeyCodeReader {
+        int keyCode(KeyMapping mapping);
+    }
+
     private static Supplier<Path> configDir = () -> Path.of("config");
+    private static KeyCodeReader keyCodeReader = mapping -> -1;
     private static GuiOrigin guiOrigin;
     private static SortSender sortSender = (containerId, group, method, key, lockedIds) -> {
     };
@@ -49,6 +59,15 @@ public final class Platform {
 
     public static GuiOrigin guiOrigin() {
         return guiOrigin;
+    }
+
+    public static void setKeyCodeReader(KeyCodeReader reader) {
+        keyCodeReader = reader;
+    }
+
+    /** The key code a mapping is bound to right now, after any rebinding in Options. */
+    public static int keyCode(KeyMapping mapping) {
+        return keyCodeReader.keyCode(mapping);
     }
 
     public static Path configDir() {

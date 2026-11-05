@@ -76,6 +76,10 @@ public final class ScreenActions {
     private static AbstractContainerScreen<?> markScreen;
     private static final Set<Integer> marked = new HashSet<>();
 
+    /** Slots already quick-moved during the current hold of Shift, and the screen they belong to. */
+    private static final Set<Integer> dragged = new HashSet<>();
+    private static AbstractContainerScreen<?> dragScreen;
+
     /** The delete confirmation is open for one screen, with these menu slots. */
     private static AbstractContainerScreen<?> confirmScreen;
     private static List<Integer> confirmSlots = List.of();
@@ -85,6 +89,7 @@ public final class ScreenActions {
 
     public static void render(AbstractContainerScreen<?> screen, GuiGraphics graphics, double mouseX, double mouseY) {
         updateMarking(screen);
+        updateShiftDrag(screen, mouseX, mouseY);
 
         // Everything below is drawn above the item stacks, which the game draws higher than plain fills.
         graphics.pose().pushPose();
@@ -167,6 +172,19 @@ public final class ScreenActions {
                 }
             }
         }
+        // Ctrl-click moves one item (Ctrl+Shift moves every item of that type). Shift-click moves the stack, as usual.
+        Slot hovered = slotUnder(screen, mouseX, mouseY);
+        if (button == LEFT_BUTTON && hovered != null && (KeyBindings.ctrlDown() || KeyBindings.shiftDown())) {
+            boolean ctrl = KeyBindings.ctrlDown();
+            boolean shift = KeyBindings.shiftDown();
+            if (ctrl) {
+                sendQuickMove(screen, hovered, shift ? "type" : "one");
+            } else {
+                dragged.add(hovered.index);
+                sendQuickMove(screen, hovered, "stack");
+            }
+            return true;
+        }
         if (markScreen == screen && isXDown() && button == LEFT_BUTTON) {
             for (Group group : Group.of(screen)) {
                 Slot slot = slotAt(screen, group, mouseX, mouseY);
@@ -202,7 +220,7 @@ public final class ScreenActions {
      * Escape closes the delete dialog, the popup, or slot selection. R sorts the group under the mouse; away from a
      * group it does nothing, so the recipe book key keeps working. Returns true when the key was used.
      */
-    public static boolean key(AbstractContainerScreen<?> screen, int keyCode) {
+    public static boolean key(AbstractContainerScreen<?> screen, int keyCode, int scanCode) {
         if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
             if (confirmScreen == screen) {
                 closeConfirm();
@@ -217,7 +235,7 @@ public final class ScreenActions {
                 return true;
             }
         }
-        if (keyCode == GLFW.GLFW_KEY_R) {
+        if (KeyBindings.SORT.matches(keyCode, scanCode)) {
             return keyR(screen);
         }
         return false;
@@ -241,8 +259,7 @@ public final class ScreenActions {
     // ---- Delete marking: hold X, click slots to mark them red, release X to confirm ----
 
     private static boolean isXDown() {
-        Minecraft minecraft = Minecraft.getInstance();
-        return InputConstants.isKeyDown(minecraft.getWindow().getWindow(), GLFW.GLFW_KEY_X);
+        return KeyBindings.isDown(KeyBindings.MARK);
     }
 
     /** Starts a new mark when X goes down, and opens the confirmation when it comes back up. */
@@ -259,6 +276,57 @@ public final class ScreenActions {
             marked.clear();
         }
         xWasDown = xDown;
+    }
+
+    /**
+     * Sends a quick move for one slot. Locked slots are not sent at all. Every locked slot on the screen travels with
+     * the request as a menu index, on either side, so the server applies the same rule to the source and destinations.
+     */
+    private static void sendQuickMove(AbstractContainerScreen<?> screen, Slot slot, String mode) {
+        Set<Integer> locked = lockedMenuSlots(screen);
+        if (locked.contains(slot.index)) {
+            return;
+        }
+        String lockedList = String.join(",", locked.stream().map(String::valueOf).toList());
+        Platform.sendSort(screen.getMenu().containerId, Sorter.QUICK_MOVE, mode, lockedList,
+                String.valueOf(slot.index));
+    }
+
+    /** Menu indexes of every locked slot on the screen, from both the player and the container side. */
+    private static Set<Integer> lockedMenuSlots(AbstractContainerScreen<?> screen) {
+        var inventory = Minecraft.getInstance().player.getInventory();
+        GroupSettings playerSettings = ClientSettings.get(Sorter.GROUP_PLAYER);
+        GroupSettings containerSettings = ClientSettings.get(Group.containerKey(screen));
+        Set<Integer> out = new HashSet<>();
+        for (Slot s : screen.getMenu().slots) {
+            GroupSettings settings = s.container == inventory ? playerSettings : containerSettings;
+            if (settings.isLocked(Sorter.lockId(s, inventory))) {
+                out.add(s.index);
+            }
+        }
+        return out;
+    }
+
+    /**
+     * Holding Shift and moving over items quick-moves each one, once per hold. Releasing Shift starts over.
+     */
+    private static void updateShiftDrag(AbstractContainerScreen<?> screen, double mouseX, double mouseY) {
+        if (!KeyBindings.shiftDown()) {
+            dragged.clear();
+            dragScreen = null;
+            return;
+        }
+        if (dragScreen != screen) {
+            dragged.clear();
+            dragScreen = screen;
+        }
+        if (confirmScreen == screen || popupScreen == screen || selectScreen == screen) {
+            return;
+        }
+        Slot slot = slotUnder(screen, mouseX, mouseY);
+        if (slot != null && slot.hasItem() && dragged.add(slot.index)) {
+            sendQuickMove(screen, slot, "stack");
+        }
     }
 
     private static void toggleMark(int menuSlot) {
@@ -434,6 +502,23 @@ public final class ScreenActions {
         return selectScreen == screen && group.settingsKey().equals(selectKey);
     }
 
+    /**
+     * The slot of the screen under the mouse, or null. Computed here rather than read from the screen, because
+     * Fabric does not expose the screen's hovered slot.
+     */
+    private static Slot slotUnder(AbstractContainerScreen<?> screen, double mouseX, double mouseY) {
+        int guiLeft = Platform.guiOrigin().left(screen);
+        int guiTop = Platform.guiOrigin().top(screen);
+        for (Slot slot : screen.getMenu().slots) {
+            int x = guiLeft + slot.x;
+            int y = guiTop + slot.y;
+            if (mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16) {
+                return slot;
+            }
+        }
+        return null;
+    }
+
     /** Which slot of the group is under the mouse, or null. */
     private static Slot slotAt(AbstractContainerScreen<?> screen, Group group, double mouseX, double mouseY) {
         int guiLeft = Platform.guiOrigin().left(screen);
@@ -451,7 +536,12 @@ public final class ScreenActions {
     private static void toggleSlot(Group group, Slot slot) {
         GroupSettings settings = ClientSettings.get(group.settingsKey());
         var inventory = Minecraft.getInstance().player.getInventory();
-        ClientSettings.put(group.settingsKey(), settings.toggleSlot(Sorter.lockId(slot, inventory)));
+        GroupSettings updated = settings.toggleSlot(Sorter.lockId(slot, inventory));
+        ClientSettings.put(group.settingsKey(), updated);
+        // Player slots also limit autofill, so the server needs the new locks right away.
+        if (Sorter.GROUP_PLAYER.equals(group.settingsKey())) {
+            AutofillSync.send(updated);
+        }
     }
 
     /** Outlines every locked slot of the group with the given colors. */
@@ -565,7 +655,7 @@ public final class ScreenActions {
                 // The tool setting is per player, so it is saved and also sent to the server right away.
                 GroupSettings updated = settings.withReplaceAtOne(!settings.replaceAtOne());
                 ClientSettings.put(group.settingsKey(), updated);
-                AutofillSync.send(updated.replaceAtOne());
+                AutofillSync.send(updated);
             }
             default -> {
             }

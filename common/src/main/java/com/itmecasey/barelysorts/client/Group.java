@@ -2,9 +2,10 @@ package com.itmecasey.barelysorts.client;
 
 import com.itmecasey.barelysorts.Platform;
 import com.itmecasey.barelysorts.Sorter;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
+import net.minecraft.world.Container;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.inventory.Slot;
@@ -21,18 +22,20 @@ public record Group(String name, String settingsKey, List<Slot> slots, int left,
     /** Every group the open screen shows, or none for screens that cannot be sorted (creative, for one). */
     public static List<Group> of(AbstractContainerScreen<?> screen) {
         List<Group> groups = new ArrayList<>();
-        if (screen instanceof CreativeModeInventoryScreen || Minecraft.getInstance().player == null) {
+        if (!Sorter.isSupported(screen.getMenu()) || Minecraft.getInstance().player == null) {
             return groups;
         }
         var inventory = Minecraft.getInstance().player.getInventory();
         List<Slot> playerMain = new ArrayList<>();
         List<Slot> container = new ArrayList<>();
+        Container main = Sorter.mainContainer(screen.getMenu(), inventory);
         for (Slot slot : screen.getMenu().slots) {
             if (slot.container == inventory) {
                 if (slot.getContainerSlot() >= 9 && slot.getContainerSlot() <= 35) {
                     playerMain.add(slot);
                 }
-            } else if (!(slot instanceof ResultSlot) && !(slot.container instanceof CraftingContainer)) {
+            } else if (slot.container == main && !(slot instanceof ResultSlot)
+                    && !(slot.container instanceof CraftingContainer)) {
                 container.add(slot);
             }
         }
@@ -40,9 +43,23 @@ public record Group(String name, String settingsKey, List<Slot> slots, int left,
             groups.add(bounds(Sorter.GROUP_PLAYER, "player", playerMain, screen));
         }
         if (!container.isEmpty()) {
-            groups.add(bounds(Sorter.GROUP_CONTAINER, screen.getClass().getName(), container, screen));
+            groups.add(bounds(Sorter.GROUP_CONTAINER, containerKey(screen), container, screen));
         }
         return groups;
+    }
+
+    /**
+     * Container settings are kept per kind of container and per size, so a chest and a double chest, or a chest and a
+     * barrel, do not share their locks.
+     */
+    public static String containerKey(AbstractContainerScreen<?> screen) {
+        String type;
+        try {
+            type = String.valueOf(BuiltInRegistries.MENU.getKey(screen.getMenu().getType()));
+        } catch (UnsupportedOperationException e) {
+            type = screen.getClass().getName();
+        }
+        return type + "#" + screen.getMenu().slots.size();
     }
 
     private static Group bounds(String name, String settingsKey, List<Slot> slots, AbstractContainerScreen<?> screen) {

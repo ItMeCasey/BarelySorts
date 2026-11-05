@@ -3,7 +3,9 @@ package com.itmecasey.barelysorts.forge;
 import com.itmecasey.barelysorts.Autofill;
 import com.itmecasey.barelysorts.BarelySorts;
 import com.itmecasey.barelysorts.client.AutofillSync;
+import com.itmecasey.barelysorts.client.KeyBindings;
 import com.itmecasey.barelysorts.client.ScreenActions;
+import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.server.level.ServerPlayer;
@@ -30,6 +32,18 @@ public final class ForgeEvents {
     @SubscribeEvent
     public static void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
         Autofill.forget(event.getEntity().getUUID());
+    }
+
+    /** Key mappings are registered on the mod bus, on the client only. */
+    @Mod.EventBusSubscriber(modid = BarelySorts.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+    public static final class Keys {
+        private Keys() {
+        }
+
+        @SubscribeEvent
+        public static void registerKeys(RegisterKeyMappingsEvent event) {
+            KeyBindings.all().forEach(event::register);
+        }
     }
 
     /** Client-side hooks: the buttons and the middle-click and R sorting on container screens. */
@@ -62,7 +76,7 @@ public final class ForgeEvents {
         @SubscribeEvent
         public static void onKey(ScreenEvent.KeyPressed.Pre event) {
             if (event.getScreen() instanceof AbstractContainerScreen<?> screen
-                    && ScreenActions.key(screen, event.getKeyCode())) {
+                    && ScreenActions.key(screen, event.getKeyCode(), event.getScanCode())) {
                 event.setCanceled(true);
             }
         }

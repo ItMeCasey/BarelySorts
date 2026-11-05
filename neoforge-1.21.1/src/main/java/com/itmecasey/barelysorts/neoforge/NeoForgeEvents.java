@@ -3,6 +3,8 @@ package com.itmecasey.barelysorts.neoforge;
 import com.itmecasey.barelysorts.Autofill;
 import com.itmecasey.barelysorts.BarelySorts;
 import com.itmecasey.barelysorts.client.AutofillSync;
+import com.itmecasey.barelysorts.client.KeyBindings;
+import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import com.itmecasey.barelysorts.client.ScreenActions;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -63,8 +65,20 @@ final class NeoForgeScreenEvents {
     @SubscribeEvent
     public static void onKey(ScreenEvent.KeyPressed.Pre event) {
         if (event.getScreen() instanceof AbstractContainerScreen<?> screen
-                && ScreenActions.key(screen, event.getKeyCode())) {
+                && ScreenActions.key(screen, event.getKeyCode(), event.getScanCode())) {
             event.setCanceled(true);
         }
+    }
+}
+
+/** Key mappings are registered on the mod bus, on the client only. */
+@EventBusSubscriber(modid = BarelySorts.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+final class NeoForgeKeys {
+    private NeoForgeKeys() {
+    }
+
+    @SubscribeEvent
+    public static void registerKeys(RegisterKeyMappingsEvent event) {
+        KeyBindings.all().forEach(event::register);
     }
 }
