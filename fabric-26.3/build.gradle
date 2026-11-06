@@ -19,6 +19,7 @@ sourceSets {
     main {
         java.srcDir '../version-26.3/src/main/java'
         java.srcDir '../common/src/main/java'
+        if (project.hasProperty('tour')) { java.srcDir '../common/src/devtest/java'; java.srcDir '../version-26.3/src/devtest/java' }  // dev client tour, never in releases
         resources.srcDir '../common/src/main/resources'
     }
 }

@@ -63,6 +63,14 @@ public final class Platform {
 
     public static void setKeyCodeReader(KeyCodeReader reader) {
         keyCodeReader = reader;
+        if (System.getenv("BARELYSORTS_TOUR") != null) {
+            // Dev only: starts the client test tour when the build was made with -Ptour.
+            try {
+                Class.forName("com.itmecasey.barelysorts.devtest.Tour").getMethod("start").invoke(null);
+            } catch (ReflectiveOperationException e) {
+                // Not a tour build.
+            }
+        }
     }
 
     /** The key code a mapping is bound to right now, after any rebinding in Options. */

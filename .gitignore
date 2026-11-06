@@ -15,3 +15,4 @@ dist/
 scratch-*.log
 test-mods.gradle
 runs/
+scratch-tour-*
