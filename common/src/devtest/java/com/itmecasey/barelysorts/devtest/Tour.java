@@ -74,7 +74,9 @@ public final class Tour {
             log("FAILED " + t);
             t.printStackTrace();
         } finally {
-            mc.execute(() -> mc.stop());
+            if (mc != null) {
+                mc.execute(() -> mc.stop());
+            }
             try {
                 Thread.sleep(10000);
             } catch (InterruptedException ignored) {
