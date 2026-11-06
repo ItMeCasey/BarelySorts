@@ -33,7 +33,7 @@ Each group remembers its own sort method, sort by and locks. Open the settings b
 
 Install it on both the client and the server. One jar per Minecraft version (1.20.1, 1.21.1, 26.1.2, 26.2, 26.3) works on Forge, NeoForge and Fabric. On 1.20.1, NeoForge uses the Forge 1.20.1 jar.
 
-**Tested:** played in a game client on NeoForge 1.21.1, Forge 1.20.1, NeoForge 26.1.2 and NeoForge 26.3. Every other loader and version compiles and loads on a headless server but has not been played yet: Forge 1.21.1, 26.1.2, 26.2 and 26.3, NeoForge 26.2, and Fabric on every version. Bug reports are welcome.
+**Tested:** played by hand on NeoForge 1.21.1, Forge 1.20.1, NeoForge 26.1.2 and NeoForge 26.3. A scripted client run (sort, popup, locks, mass delete, autofill) also passed on Forge 1.21.1, 26.1.2, 26.2 and 26.3, NeoForge 26.2, and Fabric on every version; those are not played by hand yet. NeoForge 1.20.1 uses the Forge 1.20.1 jar and has not been started. Bug reports are welcome.
 
 ![FAQ](https://raw.githubusercontent.com/ItMeCasey/BarelySorts/main/branding/banners/h_faq.png)
 

@@ -22,11 +22,11 @@ On 1.20.1, NeoForge uses the Forge 1.20.1 jar. Install it on both the client and
 
 ## Tested
 
-Played in a game client: NeoForge 1.21.1, Forge 1.20.1, NeoForge 26.1.2 and NeoForge 26.3.
+Played by hand in a game client: NeoForge 1.21.1, Forge 1.20.1, NeoForge 26.1.2 and NeoForge 26.3.
 
-Every other loader and version compiles and loads on a headless server but has not been played yet: Forge 1.21.1,
-26.1.2, 26.2 and 26.3, NeoForge 26.2, and Fabric on every version. NeoForge 1.20.1 uses the Forge 1.20.1 jar.
-Bug reports for any of them are welcome.
+A scripted client tour (sort button, middle-click, settings popup, slot locks, mass delete with the confirm dialog, autofill) ran on every other loader and version: Forge 1.21.1, 26.1.2, 26.2 and 26.3; NeoForge 26.2 (and 26.3 again); and Fabric on 1.20.1, 1.21.1, 26.1.2, 26.2 and 26.3. Those are not played by hand yet.
+
+NeoForge 1.20.1 uses the Forge 1.20.1 jar and has not been started. Bug reports for any of them are welcome.
 
 ## Known gaps
 

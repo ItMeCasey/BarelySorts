@@ -20,3 +20,19 @@ mouse is over an inventory group the mod sorts; anywhere else, including a viewe
 untouched. Viewer recipe transfers and item cheating are not intercepted. This was confirmed by reading the code; it has not
 been client-tested with a viewer installed. Players can rebind the sort key in Controls if R clashes with a viewer
 shortcut over their inventory.
+
+## Client check per layer (2026-11-05)
+
+"Tour" is the scripted dev client in `common/src/devtest` (run with `scripts/run-tour.ps1 <layer>`): sort button, middle-click,
+settings popup, slot lock selection, locks holding during a sort, chest sort, hold-X mass delete with the confirm dialog, and
+autofill from locked and from unlocked slots, with frames read for every layer. Key frames are in `docs/frames`.
+
+| Layer | Result |
+|---|---|
+| NeoForge 1.21.1, Forge 1.20.1, NeoForge 26.1.2, NeoForge 26.3 | Played by hand (Casey) |
+| NeoForge 26.2, NeoForge 26.3 | Tour passed |
+| Forge 1.21.1 | Tour passed (after adding pack.mcmeta: the font drew as boxes without it) |
+| Forge 26.1.2, 26.2, 26.3 | Tour passed (after adding pack.mcmeta: Forge crashed on the first block drop without it) |
+| Fabric 1.20.1, 1.21.1, 26.1.2, 26.2, 26.3 | Tour passed (Fabric 26.3: three JVM crashes in jvm.dll on earlier attempts, not repeated) |
+| NeoForge 1.20.1 | Not run: no NeoForge 1.20.1 build of this mod; players use the Forge 1.20.1 jar |
+| Forge 1.20.1 | Played by hand; not re-run with the tour |
