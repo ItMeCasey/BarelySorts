@@ -35,6 +35,7 @@ public final class DrawImpl implements Draw {
     @Override
     public void item(ItemStack stack, int x, int y) {
         g.item(stack, x, y);
+        g.itemDecorations(Minecraft.getInstance().font, stack, x, y);
     }
 
     @Override
