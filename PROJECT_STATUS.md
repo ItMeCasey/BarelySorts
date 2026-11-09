@@ -11,7 +11,7 @@ Spend: none
 - [x] Forge and NeoForge build files for 1.20.1 (Forge jar), 1.21.1, 26.1.2, 26.2, 26.3 (w:4)
 - [x] Combined jar per Minecraft version (scripts/combine_jars.py) (w:3)
 - [x] 1.20.1 jar reobfuscated to Forge's names so it works in a real game (119 SRG references, was 0); release and CI gate per Minecraft version; mod_version 2026.11.3 on the 1.20.1 modules (w:3)
-- [ ] Release 2026.11.3: tag v2026.11.3 uploads only the 1.20.1 jar (w:1)
+- [x] Release 2026.11.3: tag v2026.11.3 uploaded only the 1.20.1 jar (released 2026-11-09, wiki deployed) (w:1)
 - [x] Fabric target for all five versions (w:4)
 
 ## Sorting
