@@ -26,7 +26,7 @@ Played by hand in a game client: NeoForge 1.21.1, Forge 1.20.1, NeoForge 26.1.2 
 
 A scripted client tour (sort button, middle-click, settings popup, slot locks, mass delete with the confirm dialog, autofill) ran on every other loader and version: Forge 1.21.1, 26.1.2, 26.2 and 26.3; NeoForge 26.2 (and 26.3 again); and Fabric on 1.20.1, 1.21.1, 26.1.2, 26.2 and 26.3. Those are not played by hand yet.
 
-NeoForge 1.20.1 uses the Forge 1.20.1 jar and has not been started. Bug reports for any of them are welcome.
+The 1.20.1 jar (2026.11.3) is reobfuscated to the names a real game uses and was loaded in real Forge 47.4.28 and NeoForge 47.1.106 installs (mod found and constructed, main menu reached); NeoForge 1.20.1 uses that same jar. Bug reports for any of them are welcome.
 
 ## Known gaps
 

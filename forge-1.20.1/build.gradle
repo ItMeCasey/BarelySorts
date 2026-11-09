@@ -28,7 +28,6 @@ sourceSets.main.output.resourcesDir = sourceSets.main.java.destinationDirectory.
 
 minecraft {
     mappings channel: mapping_channel, version: mapping_version
-    reobf = false
     copyIdeResources = true
 
     runs {

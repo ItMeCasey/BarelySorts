@@ -5,7 +5,7 @@ Usage:
   publish_curseforge.py --jars DIR --version 2026.11.1 --changelog-file notes.md [--release-type beta] [--dry-run]
   publish_curseforge.py --list-versions
 
-DIR holds barelysorts-mc<minecraft>-<version>.jar files, as made by scripts/combine_jars.py. Each jar carries the Forge,
+DIR holds barelysorts-mc<minecraft>-<version>.jar files, as made by scripts/combine_jars.py. Only the Minecraft versions whose modules carry --version are uploaded. Each jar carries the Forge,
 NeoForge and Fabric layers, so it is uploaded once per Minecraft version with all three loaders ticked. The upload token
 is read from the CURSEFORGE_TOKEN environment variable and is never printed. Only the Python standard library is used.
 """
@@ -34,14 +34,16 @@ RELEASE_TYPES = ("alpha", "beta", "release")
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def module_versions():
-    """Every mod_version found in the modules' gradle.properties files."""
+def minecraft_version_of(minecraft):
+    """The mod_version shared by the modules of one Minecraft version (they must agree), or None."""
     found = set()
-    for props in ROOT.glob("*/gradle.properties"):
+    for props in ROOT.glob(f"*-{minecraft}/gradle.properties"):
         for line in props.read_text(encoding="utf-8").splitlines():
             if line.startswith("mod_version="):
                 found.add(line.split("=", 1)[1].strip())
-    return found
+    if len(found) > 1:
+        sys.exit(f"Modules of Minecraft {minecraft} disagree on mod_version: {sorted(found)}")
+    return found.pop() if found else None
 
 
 def token():
@@ -98,13 +100,15 @@ def main():
         return
     if not (args.jars and args.version and args.changelog_file):
         parser.error("--jars, --version and --changelog-file are required")
-    if module_versions() != {args.version}:
-        sys.exit(f"Modules carry mod_version {sorted(module_versions())}, not {args.version}")
 
     versions = request(f"{API}/game/versions")
     changelog = args.changelog_file.read_text(encoding="utf-8")
     plan = []
     for minecraft, java in MINECRAFT.items():
+        own = minecraft_version_of(minecraft)
+        if own != args.version:
+            print(f"skipping Minecraft {minecraft}: mod_version {own} is not {args.version}")
+            continue
         jar = args.jars / f"barelysorts-mc{minecraft}-{args.version}.jar"
         if not jar.is_file():
             sys.exit(f"Missing combined jar {jar}")
@@ -116,6 +120,8 @@ def main():
             print(f"note: CurseForge has no '{java}', uploading {minecraft} without a Java version")
         plan.append((jar, ids, f"BarelySorts {args.version} (Minecraft {minecraft})"))
 
+    if not plan:
+        sys.exit(f"No Minecraft version has mod_version {args.version}")
     for jar, ids, title in plan:
         print(f"{title}: {jar.name} ({jar.stat().st_size // 1024} KiB) game version ids {ids}, {args.release_type}")
     if args.dry_run:

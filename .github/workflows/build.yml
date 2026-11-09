@@ -7,15 +7,18 @@ on:
 
 jobs:
   versions:
-    # Every module must carry the same mod_version; releases are tagged v<mod_version>.
+    # The modules of one Minecraft version must carry the same mod_version; releases are tagged v<mod_version> and upload
+    # only the Minecraft versions whose modules carry that version.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: All modules agree on mod_version
+      - name: Modules of each Minecraft version agree on mod_version
         run: |
-          versions=$(grep -h '^mod_version=' */gradle.properties | sort -u)
-          echo "$versions"
-          test "$(echo "$versions" | wc -l)" -eq 1
+          for mc in 1.20.1 1.21.1 26.1.2 26.2 26.3; do
+            versions=$(grep -h '^mod_version=' *-$mc/gradle.properties | sort -u)
+            echo "$mc: $versions"
+            test "$(echo "$versions" | wc -l)" -eq 1
+          done
 
   test:
     # Unit tests for the shared logic that does not need a running game.

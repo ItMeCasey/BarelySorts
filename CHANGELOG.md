@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026.11.3 (Minecraft 1.20.1 only)
+
+Fixes the 1.20.1 jar, which crashed a real game. The other four Minecraft versions are unchanged and stay at 2026.11.2.
+
+- 1.20.1 (Forge and NeoForge): the Forge layer was built with `reobf = false`, so the jar kept Minecraft's development names. A development run hides that, but a real Forge or NeoForge 1.20.1 game only knows Forge's own names and would stop with `NoSuchFieldError` or `NoSuchMethodError`. The jar is now reobfuscated (119 Forge-name references in the class files, none before).
+- Loaded in a real Forge 47.4.28 install and a real NeoForge 47.1.106 install: the mod was found, `ForgeBarelySorts` was constructed and the main menu was reached with no linkage errors.
+- Releases now upload only the Minecraft versions whose modules carry the tag's version (the release and CI checks require agreement per Minecraft version instead of across all modules), so v2026.11.3 uploads the 1.20.1 jar only.
+
 ## 2026.11.2
 
 - Forge on 1.21.1 and 26.x: ship the pack metadata. Without it the pixel font did not load on 1.21.1 (empty boxes in menus and the delete dialog) and 26.x could crash on the first block drop.

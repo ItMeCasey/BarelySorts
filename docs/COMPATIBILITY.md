@@ -34,5 +34,5 @@ autofill from locked and from unlocked slots, with frames read for every layer. 
 | Forge 1.21.1 | Tour passed (after adding pack.mcmeta: the font drew as boxes without it) |
 | Forge 26.1.2, 26.2, 26.3 | Tour passed (after adding pack.mcmeta: Forge crashed on the first block drop without it) |
 | Fabric 1.20.1, 1.21.1, 26.1.2, 26.2, 26.3 | Tour passed (Fabric 26.3: three JVM crashes in jvm.dll on earlier attempts, not repeated) |
-| NeoForge 1.20.1 | Not run: no NeoForge 1.20.1 build of this mod; players use the Forge 1.20.1 jar |
+| NeoForge 1.20.1 | Combined 1.20.1 jar (2026.11.3) loaded in a real NeoForge 47.1.106 install and a real Forge 47.4.28 install (mod found, constructed, main menu reached); no tour |
 | Forge 1.20.1 | Played by hand; not re-run with the tour |

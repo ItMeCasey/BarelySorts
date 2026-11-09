@@ -1,7 +1,7 @@
 # Project Status
 <!-- status-format: 1 -->
-Updated: 2026-11-06
-Summary: 2026.11.2 is released on all five Minecraft versions (Forge pack metadata and 26.x delete-dialog counts fixed); every layer but NeoForge 1.20.1 (no such build) passed a scripted client tour.
+Updated: 2026-11-09
+Summary: 2026.11.2 is released on all five Minecraft versions; the 1.20.1 jar is fixed for real games in 2026.11.3 (not yet released) (Forge pack metadata and 26.x delete-dialog counts fixed); every layer but NeoForge 1.20.1 (no such build) passed a scripted client tour.
 Spend: none
 
 ## Foundation
@@ -10,6 +10,8 @@ Spend: none
 - [x] Shared common code layout (common/ plus version-<mc>/) (w:1)
 - [x] Forge and NeoForge build files for 1.20.1 (Forge jar), 1.21.1, 26.1.2, 26.2, 26.3 (w:4)
 - [x] Combined jar per Minecraft version (scripts/combine_jars.py) (w:3)
+- [x] 1.20.1 jar reobfuscated to Forge's names so it works in a real game (119 SRG references, was 0); release and CI gate per Minecraft version; mod_version 2026.11.3 on the 1.20.1 modules (w:3)
+- [ ] Release 2026.11.3: tag v2026.11.3 uploads only the 1.20.1 jar (w:1)
 - [x] Fabric target for all five versions (w:4)
 
 ## Sorting
@@ -29,7 +31,7 @@ Spend: none
 ## Testing and release
 - [x] Unit tests for the shared logic (w:2)
 - [x] Headless dedicated-server load on every layer (w:3)
-- [x] Client testing: played by hand on four layers; scripted client tour passed on Forge 1.21.1/26.1.2/26.2/26.3, NeoForge 26.2, Fabric all five versions; NeoForge 1.20.1 not run (w:4)
+- [x] Client testing: played by hand on four layers; scripted client tour passed on Forge 1.21.1/26.1.2/26.2/26.3, NeoForge 26.2, Fabric all five versions; the 1.20.1 combined jar loaded in real Forge 47.4.28 and NeoForge 47.1.106 installs (w:4)
 - [x] Dev-only client tour (common/src/devtest, scripts/run-tour.ps1) with frames in docs/frames (w:2)
 - [x] Release 2026.11.2: tagged, five files uploaded to CurseForge (ids 9469282-9469286), wiki deployed (w:2)
 - [x] GitHub repository (public, ItMeCasey/BarelySorts) (w:2)
