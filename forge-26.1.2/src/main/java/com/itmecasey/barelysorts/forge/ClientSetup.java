@@ -8,6 +8,7 @@ import com.itmecasey.barelysorts.compat.DrawImpl;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
+import net.minecraftforge.client.event.ContainerScreenEvent;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.eventbus.api.bus.BusGroup;
 
@@ -40,10 +41,15 @@ final class ClientSetup {
         ClientPlayerNetworkEvent.LoggingIn.BUS.addListener((ClientPlayerNetworkEvent.LoggingIn e) ->
                 AutofillSync.sendSaved());
 
-        ScreenEvent.Render.Post.BUS.addListener((ScreenEvent.Render.Post e) -> {
-            if (e.getScreen() instanceof AbstractContainerScreen<?> screen) {
-                ScreenActions.render(screen, new DrawImpl(e.getGuiGraphics()), e.getMouseX(), e.getMouseY());
-            }
+        // The container Foreground event fires before the game queues its tooltip, so tooltips stay on top. It runs
+        // inside the translated container pose, so move back to screen coordinates for the shared code.
+        ContainerScreenEvent.Render.Foreground.BUS.addListener((ContainerScreenEvent.Render.Foreground e) -> {
+            AbstractContainerScreen<?> screen = e.getContainerScreen();
+            DrawImpl draw = new DrawImpl(e.getGuiGraphics());
+            draw.push();
+            draw.translate(-Platform.guiOrigin().left(screen), -Platform.guiOrigin().top(screen));
+            ScreenActions.render(screen, draw, e.getMouseX(), e.getMouseY());
+            draw.pop();
         });
         ScreenEvent.MouseButtonPressed.Pre.BUS.addListener((ScreenEvent.MouseButtonPressed.Pre e) ->
                 e.getScreen() instanceof AbstractContainerScreen<?> screen

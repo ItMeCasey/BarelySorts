@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026.11.4 (all Minecraft versions: 1.20.1, 1.21.1, 26.1.2, 26.2, 26.3)
+
+- Tooltips are always on top now. The sort and settings buttons, the settings popup, slot locks and the delete dialog used to be drawn over item tooltips. On 1.20.1 and 1.21.1 the overlay now sits just below the tooltip layer (still above item counts). On 26.x it is drawn before the game queues its tooltip: NeoForge uses the screen's Foreground event, Forge the container Foreground event, and Fabric the `afterForeground` event (26.2, 26.3) or a small mixin (26.1.2, whose Fabric API has no such event yet).
+- Shift-click on a crafting result slot crafts the full stack again, in the 2x2 inventory grid, the crafting table and modded crafters. Barely Sorts took over every Shift-click, but its own quick move cannot take items out of a result slot, so the click did nothing. Output slots (result slots and any slot that refuses its own item) are now left to the game for Shift-click, Ctrl-click and Shift-drag, and the server-side quick move skips them.
+- Checked in a real client (isolated desktop): before the fix the mod swallowed the Shift-click on both the 2x2 and 3x3 result; after it, 16 crafting tables or chests arrive in the inventory. Tooltip order checked in frames on NeoForge 1.21.1, Forge 1.20.1, NeoForge, Forge and Fabric 26.3/26.2 and Fabric 26.1.2.
+- Dev tour: `BS_TOUR_PART=extras` runs only the tooltip-order and crafting checks, and `scripts/run-tour.ps1` now starts the client through the isolated launcher.
+
 ## 2026.11.3 (Minecraft 1.20.1 only)
 
 Fixes the 1.20.1 jar, which crashed a real game. The other four Minecraft versions are unchanged and stay at 2026.11.2.

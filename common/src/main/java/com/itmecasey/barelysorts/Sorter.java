@@ -168,7 +168,7 @@ public final class Sorter {
             return;
         }
         Slot source = menu.getSlot(index);
-        if (source instanceof ResultSlot || !source.hasItem() || !source.mayPickup(player)) {
+        if (isOutputSlot(source) || !source.hasItem() || !source.mayPickup(player)) {
             return;
         }
         // The locked list holds menu slot indexes for both sides. Locked slots never give up or receive items.
@@ -185,6 +185,15 @@ public final class Sorter {
             default -> guardedQuickMove(player, menu, index, locked);
         }
         menu.broadcastChanges();
+    }
+
+    /**
+     * An output slot: items can be taken out but never put in (crafting results, furnace and merchant outputs, modded
+     * crafters). Quick-moving these needs the menu's own click handling, so Barely Sorts never intercepts them.
+     */
+    public static boolean isOutputSlot(Slot slot) {
+        return OutputSlots.isOutput(slot instanceof ResultSlot, slot.hasItem(),
+                slot.hasItem() && slot.mayPlace(slot.getItem()));
     }
 
     /** Moves one item out of the slot: the rest of the stack stays where it was. */
@@ -206,7 +215,7 @@ public final class Sorter {
         boolean fromPlayer = source.container == inventory;
         List<Integer> matches = new ArrayList<>();
         for (Slot slot : menu.slots) {
-            if (!(slot instanceof ResultSlot) && slot.hasItem() && (slot.container == inventory) == fromPlayer
+            if (!isOutputSlot(slot) && slot.hasItem() && (slot.container == inventory) == fromPlayer
                     && !locked.contains(slot.index)
                     && Compat.sameItem(slot.getItem(), template)) {
                 matches.add(slot.index);

@@ -40,6 +40,7 @@ public final class Tour {
     /** The game's own value: 26.3 renumbered the mouse buttons. */
     private static final int LEFT = InputConstants.MOUSE_BUTTON_LEFT;
     private static volatile boolean forceMark;
+    private static volatile boolean forceShift;
     private static Minecraft mc;
 
     private Tour() {
@@ -109,6 +110,10 @@ public final class Tour {
             pos[2] = b.getZ();
         });
         String at = pos[0] + " " + pos[1] + " " + pos[2];
+        if ("extras".equals(System.getenv("BS_TOUR_PART"))) {
+            extras(server, pos);
+            return;
+        }
         command("setblock " + at + " minecraft:chest");
         String[][] chest = {{"0", "cobblestone 10"}, {"1", "diamond 3"}, {"2", "cobblestone 20"}, {"3", "apple 5"},
                 {"4", "iron_ingot 7"}, {"5", "oak_log 5"}, {"6", "iron_ingot 30"}, {"7", "stone 64"}, {"8", "coal 12"}};
@@ -225,6 +230,175 @@ public final class Tour {
         Thread.sleep(1200);
         shot("autofill_hotbar");
         dump(server, "autofill with cobblestone in unlocked slot 22 (slot 0 must hold cobblestone)");
+    }
+
+    /** Tooltip draw order and Shift-click on crafting results. Run alone with BS_TOUR_PART=extras. */
+    private static void extras(MinecraftServer server, int[] pos) throws Exception {
+        String[][] pack = {{"9", "cobblestone 32"}, {"10", "bread 4"}, {"12", "iron_ingot 9"}, {"14", "diamond 2"},
+                {"16", "oak_log 20"}, {"18", "apple 3"}, {"20", "coal 40"}, {"25", "stone 17"}, {"30", "diamond 1"}};
+        for (String[] s : pack) {
+            command("item replace entity @p container." + s[0] + " with minecraft:" + s[1]);
+        }
+        for (int i = 9; i < 36; i++) {
+            if (i != 9 && i != 10) {
+                command("item replace entity @p container." + i + " with minecraft:dirt 5");
+            }
+        }
+        Thread.sleep(800);
+
+        // 1. An item tooltip that overlaps the open settings popup must be drawn on top of it.
+        onClient(() -> setScreen(new InventoryScreen(mc.player)));
+        Thread.sleep(2000);
+        Group player = group("player");
+        clickGui(player.menuButtonX() + 4, player.menuButtonY() + 4, LEFT);
+        Thread.sleep(800);
+        player = group("player");
+        int[] box = new int[4];
+        Group popupGroup = player;
+        // Text measuring touches the font textures, so it has to run on the render thread.
+        onClient(() -> {
+            box[0] = call("popupLeft", popupGroup);
+            box[1] = call("popupTop", popupGroup);
+            box[2] = call("popupWidth", popupGroup);
+            box[3] = call("popupHeight", popupGroup);
+        });
+        int pl = box[0];
+        int pt = box[1];
+        int pw = box[2];
+        int ph = box[3];
+        net.minecraft.world.inventory.Slot target = null;
+        double best = Double.MAX_VALUE;
+        for (net.minecraft.world.inventory.Slot slot : screen().getMenu().slots) {
+            if (!slot.hasItem()) {
+                continue;
+            }
+            int sx = Platform.guiOrigin().left(screen()) + slot.x + 8;
+            int sy = Platform.guiOrigin().top(screen()) + slot.y + 8;
+            double d = Math.hypot(sx - (pl + pw / 2.0), sy - (pt + ph / 2.0));
+            if (d < best) {
+                best = d;
+                target = slot;
+            }
+        }
+        log("popup " + pl + "," + pt + " " + pw + "x" + ph + " tooltip slot " + (target == null ? "NONE" : target.index));
+        if (target != null) {
+            int mx = Platform.guiOrigin().left(screen()) + target.x + 8;
+            int my = Platform.guiOrigin().top(screen()) + target.y + 8;
+            onClient(() -> invokeMouse("onMove", Compat.windowHandle(),
+                    mx * (double) mc.getWindow().getScreenWidth() / mc.getWindow().getGuiScaledWidth(),
+                    my * (double) mc.getWindow().getScreenHeight() / mc.getWindow().getGuiScaledHeight()));
+            Thread.sleep(1200);
+            try {
+                var hf = AbstractContainerScreen.class.getDeclaredField("hoveredSlot");
+                hf.setAccessible(true);
+                var hs = (net.minecraft.world.inventory.Slot) hf.get(screen());
+                log("hovered slot " + (hs == null ? "null" : hs.index) + " mouse " + mx + "," + my);
+            } catch (ReflectiveOperationException e) {
+                log("hovered slot unknown " + e);
+            }
+            shot("tooltip_over_popup");
+        }
+        onClient(() -> setScreen(null));
+        Thread.sleep(500);
+
+        // 1b. A chest screen (no recipe book): the sort buttons must still be drawn.
+        command("setblock " + pos[0] + " " + pos[1] + " " + pos[2] + " minecraft:chest");
+        command("item replace block " + pos[0] + " " + pos[1] + " " + pos[2] + " container.13 with minecraft:apple 3");
+        onServer(server, () -> {
+            ServerPlayer p = server.getPlayerList().getPlayers().get(0);
+            p.openMenu((MenuProvider) ((ServerLevel) p.level()).getBlockEntity(new BlockPos(pos[0], pos[1], pos[2])));
+        });
+        Thread.sleep(2000);
+        shot("chest_buttons");
+        onClient(() -> setScreen(null));
+        Thread.sleep(500);
+
+        // 2. Shift-click on the 2x2 result slot of the inventory.
+        forceShift = true;
+        craft(server, "inventory 2x2", () -> setScreen(new InventoryScreen(mc.player)), null);
+
+        // 3. The same on a vanilla crafting table.
+        String table = pos[0] + " " + pos[1] + " " + (pos[2] + 3);
+        command("setblock " + table + " minecraft:crafting_table");
+        craft(server, "crafting table 3x3", null, new BlockPos(pos[0], pos[1], pos[2] + 3));
+        forceShift = false;
+    }
+
+    private static void craft(MinecraftServer server, String label, Runnable openClient, BlockPos tablePos)
+            throws Exception {
+        command("clear @p");
+        Thread.sleep(300);
+        int inputs = tablePos == null ? 4 : 9;
+        onServer(server, () -> {
+            ServerPlayer p = server.getPlayerList().getPlayers().get(0);
+            if (tablePos != null) {
+                var level = (ServerLevel) p.level();
+                p.openMenu(level.getBlockState(tablePos).getMenuProvider(level, tablePos));
+            }
+        });
+        if (openClient != null) {
+            onClient(openClient);
+        }
+        Thread.sleep(2000);
+        onServer(server, () -> {
+            ServerPlayer p = server.getPlayerList().getPlayers().get(0);
+            var menu = p.containerMenu;
+            for (int i = 1; i <= inputs; i++) {
+                if (tablePos != null && i == 5) {
+                    continue;
+                }
+                menu.getSlot(i).set(new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS, 16));
+            }
+            menu.slotsChanged(menu.getSlot(1).container);
+            menu.broadcastChanges();
+        });
+        Thread.sleep(1000);
+        shot("craft_before_" + (tablePos == null ? "2x2" : "3x3"));
+        net.minecraft.world.inventory.Slot result = screen().getMenu().getSlot(0);
+        int cx = Platform.guiOrigin().left(screen()) + result.x + 8;
+        int cy = Platform.guiOrigin().top(screen()) + result.y + 8;
+        log("craft " + label + ": result slot shows " + result.getItem());
+        // Press Shift and left-click the result through the mod's own handler. true means the mod ate the click.
+        var window = mc.getWindow();
+        double mx = cx * (double) window.getScreenWidth() / window.getGuiScaledWidth();
+        double my = cy * (double) window.getScreenHeight() / window.getGuiScaledHeight();
+        boolean[] ate = new boolean[1];
+        onClient(() -> {
+            invokeMouse("onMove", Compat.windowHandle(), mx, my);
+            ate[0] = ScreenActions.mouseButton(screen(), cx, cy, LEFT);
+        });
+        log("craft " + label + ": mod handler consumed the shift-click = " + ate[0]);
+        Thread.sleep(500);
+        if (!ate[0]) {
+            // The mod passed the click on, so the game handles it: this is the quick move the game then sends.
+            onClient(Tour::quickMoveResult);
+        }
+        Thread.sleep(1200);
+        dump(server, label + " after shift-click on the result");
+        shot("craft_after_" + (tablePos == null ? "2x2" : "3x3"));
+        onClient(() -> setScreen(null));
+        Thread.sleep(500);
+    }
+
+    /** The game's own container click (QUICK_MOVE on slot 0); the method and its enum are renamed in 26.x. */
+    private static void quickMoveResult() {
+        try {
+            for (Method m : mc.gameMode.getClass().getMethods()) {
+                Class<?>[] p = m.getParameterTypes();
+                if (p.length == 5 && p[0] == int.class && p[1] == int.class && p[2] == int.class && p[3].isEnum()
+                        && (m.getName().equals("handleInventoryMouseClick") || m.getName().equals("handleContainerInput"))) {
+                    for (Object c : p[3].getEnumConstants()) {
+                        if (c.toString().equals("QUICK_MOVE")) {
+                            m.invoke(mc.gameMode, screen().getMenu().containerId, 0, 0, c, mc.player);
+                            return;
+                        }
+                    }
+                }
+            }
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException(e);
+        }
+        throw new IllegalStateException("no container click method");
     }
 
     // ---- Helpers ----
@@ -497,6 +671,10 @@ public final class Tour {
         Compat.Api real = (Compat.Api) f.get(null);
         Compat.Api wrapper = (Compat.Api) Proxy.newProxyInstance(Compat.Api.class.getClassLoader(),
                 new Class<?>[]{Compat.Api.class}, (proxy, method, args) -> {
+                    if (method.getName().equals("keyDown") && forceShift
+                            && ((Integer) args[0] == InputConstants.KEY_LSHIFT)) {
+                        return true;
+                    }
                     if (method.getName().equals("keyDown") && forceMark
                             && (Integer) args[0] == Platform.keyCode(KeyBindings.MARK)) {
                         return true;

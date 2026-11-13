@@ -1,7 +1,7 @@
 # Project Status
 <!-- status-format: 1 -->
-Updated: 2026-11-09
-Summary: 2026.11.2 is released on all five Minecraft versions; the 1.20.1 jar is fixed for real games in 2026.11.3 (not yet released) (Forge pack metadata and 26.x delete-dialog counts fixed); every layer but NeoForge 1.20.1 (no such build) passed a scripted client tour.
+Updated: 2026-11-12
+Summary: 2026.11.4 (tooltips on top of our buttons, Shift-click crafting results fixed; committed locally, not released) is next; 2026.11.2 is released on all five Minecraft versions; the 1.20.1 jar is fixed for real games in 2026.11.3 (released) (Forge pack metadata and 26.x delete-dialog counts fixed); every layer but NeoForge 1.20.1 (no such build) passed a scripted client tour.
 Spend: none
 
 ## Foundation
@@ -27,6 +27,8 @@ Spend: none
 - [x] Settings popup: sort method, sort by, locked slots, tool swap (w:3)
 - [x] Quick-move extras: ctrl-click, ctrl+shift-click, shift-click stack, shift-drag (w:3)
 - [x] Hold X to mark slots and delete with a confirm dialog (w:3)
+- [x] 2026.11.4: buttons, popup and locks draw below item tooltips on every loader and version; verified in frames (w:2)
+- [x] 2026.11.4: Shift-click on crafting result slots (2x2, 3x3, modded) is left to the game and crafts the full stack; reproduced and verified in a client (w:2)
 
 ## Testing and release
 - [x] Unit tests for the shared logic (w:2)

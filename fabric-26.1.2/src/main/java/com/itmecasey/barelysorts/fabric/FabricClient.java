@@ -4,7 +4,6 @@ import com.itmecasey.barelysorts.Platform;
 import com.itmecasey.barelysorts.client.AutofillSync;
 import com.itmecasey.barelysorts.client.KeyBindings;
 import com.itmecasey.barelysorts.client.ScreenActions;
-import com.itmecasey.barelysorts.compat.DrawImpl;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -41,8 +40,7 @@ public final class FabricClient implements ClientModInitializer {
             if (!(screen instanceof AbstractContainerScreen<?> container)) {
                 return;
             }
-            ScreenEvents.afterExtract(screen).register((s, graphics, mouseX, mouseY, delta) ->
-                    ScreenActions.render(container, new DrawImpl(graphics), mouseX, mouseY));
+            // The overlay is drawn by ContainerScreenMixin, before the game queues its tooltip.
             ScreenMouseEvents.allowMouseClick(screen).register((s, event) ->
                     !ScreenActions.mouseButton(container, event.x(), event.y(), event.button()));
             ScreenKeyboardEvents.allowKeyPress(screen).register((s, event) ->

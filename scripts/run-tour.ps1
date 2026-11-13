@@ -1,6 +1,6 @@
 # Dev only: runs the client tour for one layer, e.g.  scripts\run-tour.ps1 neoforge-26.2
 # The tour creates a fresh survival superflat world itself. This script clears the old one, writes options.txt with
-# the toasts off, starts the client with the tour enabled, moves its window to DISPLAY6, waits for the tour to finish and
+# the toasts off, starts the client with the tour enabled, runs it on the hidden launcher desktop, waits for the tour to finish and
 # closes the client. Frames land in <layer>\run\screenshots\barelysorts_<layer>_*.png. Never touches the cursor or keyboard.
 param([Parameter(Mandatory = $true)][string]$Layer)
 
@@ -37,23 +37,21 @@ $env:JAVA_HOME = $jdk
 # Optional extra JVM flags for a flaky machine, e.g. $env:BS_TOUR_JVM = '-XX:TieredStopAtLevel=1' (C1 only, avoids JIT crashes).
 if ($env:BS_TOUR_JVM) { $env:JAVA_TOOL_OPTIONS = $env:BS_TOUR_JVM }
 
-$log = Join-Path $root "scratch-tour-$Layer.log"
+# Start the client on the hidden desktop through the launcher (never on Casey's own desktop). The game's output,
+# including the BS-TOUR lines, goes to the launcher's log. BS_TOUR_PART=extras runs only the tooltip-order and
+# Shift-click-crafting checks.
+$log = Join-Path $env:LOCALAPPDATA 'launch-isolated\MCTest.log'
 $env:BARELYSORTS_TOUR = $Layer
-$task = Start-Process -FilePath (Join-Path $dir 'gradlew.bat') -WorkingDirectory $dir -PassThru -NoNewWindow `
-    -RedirectStandardOutput $log -RedirectStandardError "$log.err" `
-    -ArgumentList 'runClient -Ptour --no-daemon'
+& powershell -NoProfile -File C:\Users\casey\.claude\tools\launch-isolated.ps1 -Run -WorkDir $dir -Command '.\gradlew.bat runClient -Ptour --no-daemon'
 Remove-Item Env:\BARELYSORTS_TOUR
-
-& powershell -NoProfile -File C:\Users\casey\.claude\tools\place-window.ps1 -Match 'Minecraft' -Wait 300
 
 $deadline = (Get-Date).AddMinutes(8)
 while ((Get-Date) -lt $deadline) {
     Start-Sleep -Seconds 5
     $text = Get-Content $log -Raw -ErrorAction SilentlyContinue
     if ($text -match 'BS-TOUR (DONE|FAILED)') { break }
-    if ($task.HasExited) { break }
 }
 Get-Content $log -ErrorAction SilentlyContinue | Select-String 'BS-TOUR|Exception|ERROR' | Select-Object -Last 60
-if (-not $task.HasExited) { Start-Sleep -Seconds 8 }
-if (-not $task.HasExited) { Stop-Process -Id $task.Id -Force }
+Start-Sleep -Seconds 8
+& powershell -NoProfile -File C:\Users\casey\.claude\tools\launch-isolated.ps1 -Kill -WorkDir $dir
 Get-ChildItem (Join-Path $run 'screenshots\barelysorts_*') -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }

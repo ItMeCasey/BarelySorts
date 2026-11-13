@@ -47,7 +47,11 @@ public final class ScreenActions {
     private static final int LOCKED_FAINT = 0x66F2B33D;
     private static final int LOCKED_FAINT_TINT = 0x18F2B33D;
     /** How far overlays are lifted in front of the item stacks. */
-    private static final float OVERLAY_Z = 400f;
+    /**
+     * Overlay height on versions that draw with a z offset: above item stacks, their counts and the carried
+     * item (counts reach about 350), but below tooltips, which the game draws at 400. 26.x orders overlays by stratum instead and ignores this.
+     */
+    private static final float OVERLAY_Z = 399f;
     private static final int RED = 0xFFE5484D;
     private static final int RED_TINT = 0x55E5484D;
     private static final int DIALOG_WIDTH = 178;
@@ -170,8 +174,11 @@ public final class ScreenActions {
             }
         }
         // Ctrl-click moves one item (Ctrl+Shift moves every item of that type). Shift-click moves the stack, as usual.
+        // Output slots (crafting results and the like) are left to the game, which crafts the whole stack on
+        // Shift-click and has its own rules for Ctrl-click. Our quick move cannot take items out of them.
         Slot hovered = slotUnder(screen, mouseX, mouseY);
-        if (button == LEFT_BUTTON && hovered != null && (KeyBindings.ctrlDown() || KeyBindings.shiftDown())) {
+        if (button == LEFT_BUTTON && hovered != null && !Sorter.isOutputSlot(hovered)
+                && (KeyBindings.ctrlDown() || KeyBindings.shiftDown())) {
             boolean ctrl = KeyBindings.ctrlDown();
             boolean shift = KeyBindings.shiftDown();
             if (ctrl) {
@@ -323,7 +330,7 @@ public final class ScreenActions {
             return;
         }
         Slot slot = slotUnder(screen, mouseX, mouseY);
-        if (slot != null && slot.hasItem() && dragged.add(slot.index)) {
+        if (slot != null && slot.hasItem() && !Sorter.isOutputSlot(slot) && dragged.add(slot.index)) {
             sendQuickMove(screen, slot, "stack");
         }
     }

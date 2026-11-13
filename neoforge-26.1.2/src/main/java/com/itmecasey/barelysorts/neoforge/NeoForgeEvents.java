@@ -43,7 +43,8 @@ final class NeoForgeScreenEvents {
     }
 
     @SubscribeEvent
-    public static void onRender(ScreenEvent.Render.Post event) {
+    // Foreground, not Post: it fires before the game queues its tooltip, so tooltips stay on top.
+    public static void onRender(ScreenEvent.Render.Foreground event) {
         if (event.getScreen() instanceof AbstractContainerScreen<?> screen) {
             ScreenActions.render(screen, new DrawImpl(event.getGuiGraphics()), event.getMouseX(), event.getMouseY());
         }

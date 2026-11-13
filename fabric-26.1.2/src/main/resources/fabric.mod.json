@@ -8,6 +8,7 @@
   "license": "${mod_license}",
   "environment": "*",
   "accessWidener": "barelysorts.accesswidener",
+  "mixins": ["barelysorts.mixins.json"],
   "entrypoints": {
     "main": ["com.itmecasey.barelysorts.fabric.FabricBarelySorts"],
     "client": ["com.itmecasey.barelysorts.fabric.FabricClient"]

@@ -1,0 +1,7 @@
+{
+  "required": true,
+  "package": "com.itmecasey.barelysorts.fabric.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": ["ContainerScreenMixin", "RecipeBookScreenMixin"],
+  "injectors": {"defaultRequire": 1}
+}

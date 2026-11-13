@@ -41,7 +41,8 @@ public final class FabricClient implements ClientModInitializer {
             if (!(screen instanceof AbstractContainerScreen<?> container)) {
                 return;
             }
-            ScreenEvents.afterExtract(screen).register((s, graphics, mouseX, mouseY, delta) ->
+            // afterForeground, not after-render: it fires before the game queues its tooltip, so tooltips stay on top.
+            ScreenEvents.afterForeground(screen).register((s, graphics, mouseX, mouseY, delta) ->
                     ScreenActions.render(container, new DrawImpl(graphics), mouseX, mouseY));
             ScreenMouseEvents.allowMouseClick(screen).register((s, event) ->
                     !ScreenActions.mouseButton(container, event.x(), event.y(), event.button()));
