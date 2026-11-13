@@ -29,11 +29,7 @@ BarelySorts adds two small buttons to each storage inventory. Press the sort but
 
 Each group remembers its own sort method, sort by and locks. Open the settings button on a chest, or on your own inventory, to change them. Your inventory also has the autofill tool-swap option.
 
-![Install](https://raw.githubusercontent.com/ItMeCasey/BarelySorts/main/branding/banners/h_install.png)
-
-Install it on both the client and the server. One jar per Minecraft version (1.20.1, 1.21.1, 26.1.2, 26.2, 26.3) works on Forge, NeoForge and Fabric. On 1.20.1, NeoForge uses the Forge 1.20.1 jar.
-
-**Tested:** played by hand on NeoForge 1.21.1, Forge 1.20.1, NeoForge 26.1.2 and NeoForge 26.3. A scripted client run (sort, popup, locks, mass delete, autofill) also passed on Forge 1.21.1, 26.1.2, 26.2 and 26.3, NeoForge 26.2, and Fabric on every version; those are not played by hand yet. NeoForge 1.20.1 uses the Forge 1.20.1 jar and has not been started. Bug reports are welcome.
+One jar per Minecraft version (1.20.1, 1.21.1, 26.1.2, 26.2, 26.3) works on Forge, NeoForge and Fabric. On 1.20.1, NeoForge uses the Forge 1.20.1 jar.
 
 ![FAQ](https://raw.githubusercontent.com/ItMeCasey/BarelySorts/main/branding/banners/h_faq.png)
 
