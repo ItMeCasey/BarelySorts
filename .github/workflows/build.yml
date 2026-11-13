@@ -6,9 +6,27 @@ on:
   pull_request:
 
 jobs:
+  plan:
+    # Picks the modules whose code changed in this push or pull request, so unchanged builds are never run.
+    # Docs, status, branding and workflow-only changes pick nothing. See .github/scripts/plan_matrix.py.
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      any: ${{ steps.plan.outputs.any }}
+      test: ${{ steps.plan.outputs.test }}
+      combine: ${{ steps.plan.outputs.combine }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - id: plan
+        run: python3 .github/scripts/plan_matrix.py build --before "${{ github.event.pull_request.base.sha || github.event.before }}" --sha "${{ github.sha }}"
+
   versions:
     # The modules of one Minecraft version must carry the same mod_version; releases are tagged v<mod_version> and upload
     # only the Minecraft versions whose modules carry that version.
+    needs: plan
+    if: needs.plan.outputs.any == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -22,7 +40,8 @@ jobs:
 
   test:
     # Unit tests for the shared logic that does not need a running game.
-    needs: versions
+    needs: [plan, versions]
+    if: needs.plan.outputs.test == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -37,39 +56,11 @@ jobs:
       - run: ./gradlew test --no-daemon
 
   build:
-    needs: versions
+    needs: [plan, versions]
+    if: needs.plan.outputs.any == 'true'
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - module: forge-1.20.1
-            java: 17
-          - module: fabric-1.20.1
-            java: 17
-          - module: neoforge-1.21.1
-            java: 21
-          - module: forge-1.21.1
-            java: 21
-          - module: fabric-1.21.1
-            java: 21
-          - module: neoforge-26.1.2
-            java: 25
-          - module: forge-26.1.2
-            java: 25
-          - module: fabric-26.1.2
-            java: 25
-          - module: neoforge-26.2
-            java: 25
-          - module: forge-26.2
-            java: 25
-          - module: fabric-26.2
-            java: 25
-          - module: neoforge-26.3
-            java: 25
-          - module: forge-26.3
-            java: 25
-          - module: fabric-26.3
-            java: 25
+      matrix: ${{ fromJson(needs.plan.outputs.matrix) }}
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -91,8 +82,10 @@ jobs:
             !${{ matrix.module }}/build/libs/*-dev.jar
 
   combine:
-    # One combined jar per Minecraft version, holding every loader's layer.
-    needs: build
+    # One combined jar per Minecraft version, holding every loader's layer. Only for Minecraft versions whose every layer
+    # was built in this run (a change to one loader folder builds that layer alone and combines nothing).
+    needs: [plan, build]
+    if: needs.plan.outputs.combine != ''
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -102,7 +95,7 @@ jobs:
       - name: Combine the loader jars of each Minecraft version
         run: |
           mkdir -p dist
-          for mc in 1.20.1 1.21.1 26.1.2 26.2 26.3; do
+          for mc in ${{ needs.plan.outputs.combine }}; do
             jars=$(ls layers/*-$mc/*.jar)
             echo "$mc: $jars"
             version=$(grep -h '^mod_version=' forge-$mc/gradle.properties | cut -d= -f2)

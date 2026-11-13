@@ -1,6 +1,6 @@
 # Project Status
 <!-- status-format: 1 -->
-Updated: 2026-11-12
+Updated: 2026-11-13
 Summary: 2026.11.4 (tooltips on top of our buttons, Shift-click crafting results fixed; committed locally, not released) is next; 2026.11.2 is released on all five Minecraft versions; the 1.20.1 jar is fixed for real games in 2026.11.3 (released) (Forge pack metadata and 26.x delete-dialog counts fixed); every layer but NeoForge 1.20.1 (no such build) passed a scripted client tour.
 Spend: none
 
@@ -38,6 +38,7 @@ Spend: none
 - [x] Release 2026.11.2: tagged, five files uploaded to CurseForge (ids 9469282-9469286), wiki deployed (w:2)
 - [x] GitHub repository (public, ItMeCasey/BarelySorts) (w:2)
 - [x] GitHub CI workflow: build all layers, test, combine jars (w:2)
+- [~] CI builds and releases only the modules a change affects (.github/scripts/plan_matrix.py with unit tests; committed locally, not yet run on GitHub) (w:2)
 - [x] Release workflow and CurseForge upload script (publish off by default) (w:2)
 - [x] CurseForge project created (id 1784568); 2026.11.1 released, all five files approved (w:2)
 
