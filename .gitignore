@@ -16,3 +16,7 @@ scratch-*.log
 test-mods.gradle
 runs/
 scratch-tour-*
+
+# Python bytecode from the CI planner and tools
+__pycache__/
+*.pyc
