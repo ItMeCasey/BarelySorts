@@ -1,7 +1,7 @@
 # Project Status
 <!-- status-format: 1 -->
 Updated: 2026-11-13
-Summary: 2026.11.4 (tooltips on top of our buttons, Shift-click crafting results fixed; committed locally, not released) is next; 2026.11.2 is released on all five Minecraft versions; the 1.20.1 jar is fixed for real games in 2026.11.3 (released) (Forge pack metadata and 26.x delete-dialog counts fixed); every layer but NeoForge 1.20.1 (no such build) passed a scripted client tour.
+Summary: 2026.11.4 (tooltips above our buttons, Shift-click crafting results) is released; 2026.11.5 adds optional ModJS scripting (BarelySorts global) and removes the hints, committed and ready to release on all 15 modules.
 Spend: none
 
 ## Foundation
@@ -28,8 +28,8 @@ Spend: none
 - [x] Quick-move extras: ctrl-click, ctrl+shift-click, shift-click stack, shift-drag (w:3)
 - [x] Hold X to mark slots and delete with a confirm dialog (w:3)
 - [x] 2026.11.4: buttons, popup and locks draw below item tooltips on every loader and version; verified in frames (w:2)
-- [x] 2026.11.4: optional ModJS scripting (BarelySorts global: sort, quick-move, delete, autofill events, reads, categories and sort orders; docs/scripting.md and wiki page) (w:3)
-- [x] 2026.11.4: hints removed (button tooltips are plain names, lock-selection caption, delete-dialog warning, "(choose)") (w:1)
+- [x] 2026.11.5: optional ModJS scripting (BarelySorts global: sort, quick-move, delete, autofill events, reads, categories and sort orders; docs/scripting.md and wiki page) (w:3)
+- [x] 2026.11.5: hints removed (button tooltips are plain names, lock-selection caption, delete-dialog warning, "(choose)") (w:1)
 - [x] 2026.11.4: Shift-click on crafting result slots (2x2, 3x3, modded) is left to the game and crafts the full stack; reproduced and verified in a client (w:2)
 
 ## Testing and release
