@@ -46,6 +46,8 @@ public final class Platform {
     public static void init(Supplier<Path> configDirectory, SortSender sender) {
         configDir = configDirectory;
         sortSender = sender;
+        // Optional: scripts get the BarelySorts global only when ModJS is installed.
+        com.itmecasey.barelysorts.script.ModJsBridge.install();
     }
 
     /** Sets only the sender, for loaders whose client side starts after the common setup. */

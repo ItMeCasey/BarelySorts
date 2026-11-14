@@ -28,6 +28,8 @@ Spend: none
 - [x] Quick-move extras: ctrl-click, ctrl+shift-click, shift-click stack, shift-drag (w:3)
 - [x] Hold X to mark slots and delete with a confirm dialog (w:3)
 - [x] 2026.11.4: buttons, popup and locks draw below item tooltips on every loader and version; verified in frames (w:2)
+- [x] 2026.11.4: optional ModJS scripting (BarelySorts global: sort, quick-move, delete, autofill events, reads, categories and sort orders; docs/scripting.md and wiki page) (w:3)
+- [x] 2026.11.4: hints removed (button tooltips are plain names, lock-selection caption, delete-dialog warning, "(choose)") (w:1)
 - [x] 2026.11.4: Shift-click on crafting result slots (2x2, 3x3, modded) is left to the game and crafts the full stack; reproduced and verified in a client (w:2)
 
 ## Testing and release

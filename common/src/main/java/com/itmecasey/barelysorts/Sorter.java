@@ -11,6 +11,10 @@ import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
+import com.itmecasey.barelysorts.script.ItemView;
+import com.itmecasey.barelysorts.script.SortEvent;
+import com.itmecasey.barelysorts.script.SortScripts;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -75,6 +79,16 @@ public final class Sorter {
         return counts.entrySet().stream().max(Map.Entry.comparingByValue()).map(Map.Entry::getKey).orElse(null);
     }
 
+    static String playerName(ServerPlayer player) {
+        return player.getName().getString();
+    }
+
+    /** A script's view of a stack. */
+    static ItemView view(ItemStack stack) {
+        return new ItemView(BuiltInRegistries.ITEM.getKey(stack.getItem()).toString(), stack.getHoverName().getString(),
+                stack.getCount());
+    }
+
     public static void sortGroup(ServerPlayer player, int containerId, String group, String methodName, String keyName,
                                  String lockedIds) {
         // Not a sort: the client reports a hotbar slot the player clicked, so autofill does not put it back.
@@ -115,8 +129,15 @@ public final class Sorter {
         if (slots.isEmpty()) {
             return;
         }
-        SortMethod method = SortMethod.parse(methodName);
-        SortKey key = SortKey.parse(keyName);
+        SortScripts.remember(playerName(player), player.getUUID(), group, methodName, keyName,
+                locked.stream().mapToInt(Integer::intValue).toArray());
+        SortEvent scripted = SortScripts.fireSort(playerName(player), player.getUUID(), group, methodName,
+                keyName, locked.stream().mapToInt(Integer::intValue).toArray());
+        if (scripted.isCancelled()) {
+            return;
+        }
+        SortMethod method = SortMethod.parse(scripted.method);
+        SortKey key = SortKey.parse(scripted.key);
 
         List<ItemStack> stacks = new ArrayList<>();
         for (Slot slot : slots) {
@@ -148,6 +169,8 @@ public final class Sorter {
             slot.set(target.get(slot));
         }
         menu.broadcastChanges();
+        SortScripts.fireSorted(playerName(player), player.getUUID(), group, method.name(), key.name(),
+                slots.size());
     }
 
     /**
@@ -178,6 +201,9 @@ public final class Sorter {
         }
         if (source.container == player.getInventory() && source.getContainerSlot() <= 8) {
             Autofill.markManual(player.getUUID(), java.util.Set.of(source.getContainerSlot()));
+        }
+        if (!SortScripts.fireQuickMove(playerName(player), player.getUUID(), mode, index, view(source.getItem()))) {
+            return;
         }
         switch (mode) {
             case "one" -> moveOne(player, menu, source, locked);
@@ -277,14 +303,25 @@ public final class Sorter {
         if (menu.containerId != containerId || !isSupported(menu)) {
             return;
         }
+        List<Slot> doomed = new ArrayList<>();
         for (int index : parseLocked(menuSlotIds)) {
             if (index < 0 || index >= menu.slots.size()) {
                 continue;
             }
             Slot slot = menu.getSlot(index);
             if (!(slot instanceof ResultSlot) && slot.hasItem()) {
-                slot.set(ItemStack.EMPTY);
+                doomed.add(slot);
             }
+        }
+        List<ItemView> views = new ArrayList<>();
+        for (Slot slot : doomed) {
+            views.add(view(slot.getItem()));
+        }
+        if (!SortScripts.fireDelete(playerName(player), player.getUUID(), views)) {
+            return;
+        }
+        for (Slot slot : doomed) {
+            slot.set(ItemStack.EMPTY);
         }
         menu.broadcastChanges();
     }
@@ -343,6 +380,12 @@ public final class Sorter {
             case MOD -> Comparator.comparing((ItemStack s) -> namespace(s))
                     .thenComparing(s -> name(s));
         };
+        // Scripts can add categories in front of the key, or replace the key with a named order.
+        Comparator<ItemView> scripted = SortScripts.scriptedOrder();
+        if (scripted != null) {
+            Comparator<ItemStack> scriptedStacks = (a, b) -> scripted.compare(view(a), view(b));
+            byKey = SortScripts.replacesKey() ? scriptedStacks : scriptedStacks.thenComparing(byKey);
+        }
         Comparator<ItemStack> full = byKey
                 .thenComparing(s -> identity(s))
                 .thenComparingInt(s -> -s.getCount());

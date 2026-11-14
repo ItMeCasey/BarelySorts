@@ -1,6 +1,8 @@
 package com.itmecasey.barelysorts;
 
 import com.google.gson.Gson;
+import com.itmecasey.barelysorts.script.ItemView;
+import com.itmecasey.barelysorts.script.SortScripts;
 import com.google.gson.reflect.TypeToken;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
@@ -89,10 +91,10 @@ public final class Autofill {
             if (!before.isEmpty() && now.isEmpty()) {
                 // Emptied by hand (a shift-click, a drag or a delete), not by use: leave it empty.
                 if (!manual.contains(slot)) {
-                    refill(inventory, slot, before, locked);
+                    refill(player, inventory, slot, before, locked);
                 }
             } else if (atOne && isOnLastUse(now)) {
-                swapDamaged(inventory, slot, now, locked);
+                swapDamaged(player, inventory, slot, now, locked);
             }
         }
         MANUAL.remove(player.getUUID());
@@ -103,6 +105,7 @@ public final class Autofill {
         SNAPSHOTS.remove(player);
         SETTINGS.remove(player);
         MANUAL.remove(player);
+        SortScripts.forget(player);
     }
 
     /** The player's settings in memory, or read from the world file the first time. */
@@ -142,10 +145,14 @@ public final class Autofill {
         return stack.isDamageableItem() && stack.getMaxDamage() - stack.getDamageValue() <= 1;
     }
 
-    private static void refill(Inventory inventory, int hotbarSlot, ItemStack used, Set<Integer> locked) {
+    private static void refill(ServerPlayer player, Inventory inventory, int hotbarSlot, ItemStack used,
+                               Set<Integer> locked) {
         for (int slot = MAIN_START; slot <= MAIN_END; slot++) {
             ItemStack candidate = inventory.getItem(slot);
             if (!locked.contains(slot) && !candidate.isEmpty() && Compat.sameItem(candidate, used)) {
+                if (!allowed(player, hotbarSlot, slot, candidate, "refill")) {
+                    return;
+                }
                 inventory.setItem(hotbarSlot, candidate);
                 inventory.setItem(slot, ItemStack.EMPTY);
                 return;
@@ -154,15 +161,31 @@ public final class Autofill {
     }
 
     /** Swaps a tool on its last use for another of the same item from the main inventory, if there is one. */
-    private static void swapDamaged(Inventory inventory, int hotbarSlot, ItemStack damaged, Set<Integer> locked) {
+    private static void swapDamaged(ServerPlayer player, Inventory inventory, int hotbarSlot, ItemStack damaged,
+                                    Set<Integer> locked) {
         for (int slot = MAIN_START; slot <= MAIN_END; slot++) {
             ItemStack candidate = inventory.getItem(slot);
             if (!locked.contains(slot) && !candidate.isEmpty() && candidate.is(damaged.getItem())) {
+                if (!allowed(player, hotbarSlot, slot, candidate, "swap")) {
+                    return;
+                }
                 inventory.setItem(slot, damaged);
                 inventory.setItem(hotbarSlot, candidate);
                 return;
             }
         }
+    }
+
+    /** Asks scripts whether this refill or swap may happen. */
+    private static boolean allowed(ServerPlayer player, int hotbarSlot, int fromSlot, ItemStack item, String reason) {
+        return SortScripts.fireAutofill(Sorter.playerName(player), player.getUUID(), hotbarSlot, fromSlot,
+                Sorter.view(item), reason);
+    }
+
+    /** Whether the player has tool swap on; false when unknown. For scripts. */
+    public static boolean toolSwap(UUID player) {
+        Saved saved = SETTINGS.get(player);
+        return saved != null && saved.replaceAtOne();
     }
 
     private static ItemStack[] copyHotbar(Inventory inventory) {

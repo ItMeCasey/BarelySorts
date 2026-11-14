@@ -105,12 +105,9 @@ public final class ScreenActions {
             ButtonWidget.drawSort(graphics, group.sortButtonX(), group.sortButtonY(), sortHover);
             ButtonWidget.drawMenu(graphics, group.menuButtonX(), group.menuButtonY(), menuHover);
             if (sortHover) {
-                tooltip = "Sort this group";
+                tooltip = "Sort";
             } else if (menuHover) {
-                tooltip = "Sort settings";
-            }
-            if (isSelecting(screen, group)) {
-                drawSelectionHint(graphics, group);
+                tooltip = "Settings";
             }
             drawMarked(graphics, screen, group);
             if (isPopupOpen(screen, group)) {
@@ -402,9 +399,9 @@ public final class ScreenActions {
         return confirmSlots.size() > DIALOG_MAX_SHOWN;
     }
 
-    /** Title, item rows, an optional "+N more" line, then the warning and the buttons. */
+    /** Title, item rows, an optional "+N more" line, then the buttons. */
     private static int confirmHeight() {
-        return 20 + itemRows() * 18 + (overflowing() ? 10 : 0) + 40;
+        return 20 + itemRows() * 18 + (overflowing() ? 10 : 0) + 30;
     }
 
     private static int confirmLeft(AbstractContainerScreen<?> screen) {
@@ -443,7 +440,6 @@ public final class ScreenActions {
             g.centeredText(small("+" + (count - shown) + " more"), left + DIALOG_WIDTH / 2,
                     top + 20 + itemRows() * 18 + 2, TEXT);
         }
-        g.centeredText(small("This cannot be undone."), left + DIALOG_WIDTH / 2, top + height - 33, TEXT);
 
         int buttonY = top + height - 22;
         drawButton(g, font, left + 12, buttonY, "Delete", RED, mouseX, mouseY);
@@ -596,18 +592,6 @@ public final class ScreenActions {
         }
     }
 
-    /** Says how to finish slot selection, just above the group. */
-    private static void drawSelectionHint(Draw g, Group group) {
-        Font font = Minecraft.getInstance().font;
-        Component text = small("Click slots to lock. Esc to finish.");
-        int x = group.left();
-        int y = group.top() - 14;
-        int width = font.width(text);
-        // A dark plate behind the text keeps it readable over the inventory art.
-        g.fill(x - 3, y - 2, x + width + 3, y + font.lineHeight + 2, FACE);
-        g.text(text, x, y, GOLD);
-    }
-
     private static Component small(String text) {
         return Component.literal(text).withStyle(Compat.smallFont());
     }
@@ -708,7 +692,7 @@ public final class ScreenActions {
     }
 
     private static String slotsLabel(GroupSettings settings) {
-        return "Locked: " + settings.lockedSlots().size() + " (choose)";
+        return "Locked: " + settings.lockedSlots().size() + "";
     }
 
     private static String toolsLabel(GroupSettings settings) {

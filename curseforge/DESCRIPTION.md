@@ -15,6 +15,7 @@ BarelySorts adds two small buttons to each storage inventory. Press the sort but
 - **Hotbar autofill:** when the last item in a hotbar slot is used up, the same item moves in from your main inventory. Tools can swap at 1 durability or only once they break.
 - **Mass delete:** hold a key (X by default) and click slots to mark them in red. Let go to see the list of stacks with counts, then confirm to empty them.
 - **Quick-move shortcuts:** Ctrl-click moves one item, Shift-Ctrl-click moves every item of that type, and holding Shift and the left mouse button while dragging over slots moves each stack you pass.
+- **ModJS scripting:** with ModJS installed, scripts can listen to sorts, quick moves, deletes and autofill, cancel them, read a player's sort mode and locks, and define their own categories and sort orders.
 - **Server-safe:** sorting runs on the server, so it stays correct in multiplayer.
 - **Plays nicely with other mods:** Applied Energistics 2 screens are not touched. BarelySorts adds no items, blocks or recipes, so it needs no JEI, REI, EMI or BEI support, and sorting only reacts when the mouse is over an inventory group.
 
